@@ -32,6 +32,11 @@ public class UserProfile {
     List<Party> savedParties;
     List<CampaignProgress> campaignSaves;
 
+    public UserProfile() {
+        this.username = null;
+        this.password = null;
+    } //for Jackson
+
     public UserProfile(String username, String password) {
         this.username = username;
         this.password = password;

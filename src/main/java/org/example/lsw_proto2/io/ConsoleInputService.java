@@ -134,4 +134,9 @@ public class ConsoleInputService implements InputService {
             return unit;
         }
     }
+
+    @Override
+    public HeroClass chooseHeroClass(List<HeroClass> heroClasses) {
+        return null;
+    }
 }

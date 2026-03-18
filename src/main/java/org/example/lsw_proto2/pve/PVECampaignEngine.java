@@ -2,6 +2,7 @@ package org.example.lsw_proto2.pve;
 
 import org.example.lsw_proto2.battle.BattleEngine;
 import org.example.lsw_proto2.core.*;
+import org.example.lsw_proto2.io.AIInputService;
 
 import java.util.List;
 import java.util.Random;
@@ -16,7 +17,7 @@ public class PVECampaignEngine implements PVECampaign {
     private final RoomTypes[] rooms = new RoomTypes[totalRooms + 1];
     private int currentRoom;
     private int lastInnCheckpoint = 0;
-    private UnitFactory unitFactory = new UnitFactoryCSV();
+    private final UnitFactory unitFactory = new UnitFactoryCSV();
 
     public PVECampaignEngine(Party playerParty, InputService input, OutputService output, int currentRoom) {
         this.playerParty = playerParty;
@@ -25,12 +26,13 @@ public class PVECampaignEngine implements PVECampaign {
         this.currentRoom = currentRoom;
     }
 
+    @Override
     public void startCampaign() {
         output.showMessage("Starting PvE campaign with party: " + playerParty.getName());
         while (currentRoom < totalRooms) {
             output.showMessage("Current room: " + currentRoom);
             try {
-                output.showMessage("Actions: [next] [use item] [view party] [quit]");
+                output.showMessage("Actions: [next] [use item] [view party] [level up] [quit]");
                 PVECommand command = input.choosePVECommand();
                 command.execute(this);
             } catch (Exception e) {
@@ -40,6 +42,7 @@ public class PVECampaignEngine implements PVECampaign {
         output.showMessage("Campaign Finished!");
     }
 
+    @Override
     public void nextRoom() {
         output.showMessage("Entering the next room...");
         currentRoom++;
@@ -65,7 +68,7 @@ public class PVECampaignEngine implements PVECampaign {
     private void enterBattle() {
         output.showMessage("Entering a battle...");
         Party enemyParty = unitFactory.generateEnemyParty(playerParty.getCumulativeLevels());
-        BattleEngine battle = new BattleEngine(playerParty, enemyParty, input, input, output); //TODO Ai input
+        BattleEngine battle = new BattleEngine(playerParty, enemyParty, input, new AIInputService(), output); //TODO Ai input
         Party winner = battle.runBattle();
 
         if (winner == playerParty) { //player is victorious
@@ -82,7 +85,7 @@ public class PVECampaignEngine implements PVECampaign {
             // divide exp amongst all alive members
             int numStandingUnits = playerParty.getAliveUnits().size();
             for (Unit standingUnit : playerParty.getAliveUnits()) {
-                standingUnit.gainExperience(totalExperienceEarned / numStandingUnits);
+                standingUnit.addExperience(totalExperienceEarned / numStandingUnits);
             }
 
             // gain gold for the party
@@ -95,6 +98,8 @@ public class PVECampaignEngine implements PVECampaign {
             output.showMessage("Returning to previous inn!");
             currentRoom = lastInnCheckpoint;
             enterInn();
+
+            //TODO: -10% gold -30% hero exp
         }
     }
 
@@ -169,10 +174,12 @@ public class PVECampaignEngine implements PVECampaign {
         }
     }
 
+    @Override
     public void quit() {
         //TODO:
     }
 
+    @Override
     public void useItem() {
         output.showInventory(playerParty);
 
@@ -199,10 +206,52 @@ public class PVECampaignEngine implements PVECampaign {
         output.showMessage(String.format("%s consumed %s!", unit.getName(), item));
     }
 
+    @Override
     public void viewParty() {
-        output.showParty(List.of(playerParty));
+        //output.showParty(List.of(playerParty));
+        for (Unit unit : playerParty.getUnits()) {
+            output.showUnitAdvanced(unit);
+            output.showMessage("");
+        }
         output.showInventory(playerParty);
         output.showMessage("Party gold: " + playerParty.getGold());
+    }
+
+    @Override
+    public void levelUpUnit() {
+        if (!playerParty.canAnyUnitLevelAny()) {
+            output.showMessage("You can't level up any heroes.");
+            return;
+        }
+
+        //display which units can level up, and which classes they can do so
+        output.showMessage("Unit(s) available for level-up:");
+        for (Unit unit : playerParty.getAliveUnits()) {
+            if (unit.canLevelUpAny()) {
+                output.showMessage(unit.getName() + " can level up " + unit.getClassesAvailableForLevelUp());
+            }
+        }
+
+        //get unit to level up
+        output.showMessage("Enter the unit you'd like to level up:");
+        Unit unit = input.chooseUnit(playerParty.getAliveUnits());
+        if (!unit.canLevelUpAny()) {
+            output.showMessage("This unit cannot level up!");
+            return;
+        }
+
+        //get class to level up
+        output.showMessage("Enter the class you'd like to level up:");
+        HeroClass classToLevelUp = input.chooseHeroClass(unit.getClassesAvailableForLevelUp());
+
+        //finally level up the class
+        unit.levelUpClass(classToLevelUp);
+        output.showMessage(unit.getName() + " leveled up " + classToLevelUp + " to level " + unit.getClassLevels().get(classToLevelUp));
+        
+        //handle class transformations if applicable
+        if (unit.handleClassTransformation() != null) {
+            output.showMessage(unit.getName() + " has transformed into a " + unit.getMainClass());
+        }
     }
 }
 

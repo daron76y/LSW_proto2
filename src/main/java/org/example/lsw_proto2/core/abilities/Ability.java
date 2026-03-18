@@ -20,4 +20,10 @@ public abstract class Ability {
 
     //unique ability implementations
     public abstract void perform(Unit caster, Unit target, Party allyParty, Party enemyParty, OutputService output);
+
+    //to string
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "(" + manaCost + ")";
+    }
 }

@@ -51,7 +51,9 @@ public class Unit {
         this(name, 5, 5, 100, 50, startingClass);
     }
 
-    //Getters and Setters
+    // -----------------------------------------------------------------------
+    // |                                Basic                                |
+    // -----------------------------------------------------------------------
     public String getName() {return name;}
 
     public int getMaxHealth() {return maxHealth;}
@@ -78,10 +80,12 @@ public class Unit {
 
     public void setMana(int mana) {this.mana = Math.min(Math.max(0, mana), maxMana);}
 
+
+    // -----------------------------------------------------------------------
+    // |                              Effects                                |
+    // -----------------------------------------------------------------------
     public List<Effect> getEffects() {return this.effects;}
-
     public void addEffect(Effect effect) {this.effects.add(effect);}
-
     public void removeEffect(Effect effect) {this.effects.remove(effect);}
 
     public void clearDebuffEffects() {
@@ -92,10 +96,11 @@ public class Unit {
         }
     }
 
+    // -----------------------------------------------------------------------
+    // |                             Abilities                               |
+    // -----------------------------------------------------------------------
     public List<Ability> getAbilities() {return this.abilities;}
-
     public void addAbility(Ability ability) {this.abilities.add(ability);}
-
     public void removeAbility(Ability ability) {this.abilities.remove(ability);}
 
     public Ability getAbilityByName(String name) {
@@ -105,7 +110,12 @@ public class Unit {
                 .orElse(null);
     }
 
-    //Other Methods
+    // -----------------------------------------------------------------------
+    // |                               Battle                                |
+    // -----------------------------------------------------------------------
+    public boolean isAlive() {return health > 0;}
+    public boolean isDead() {return health <= 0;}
+
     public int applyDamage(int damage) {
         //apply defense
         damage -= defense;
@@ -120,10 +130,14 @@ public class Unit {
         return damage;
     }
 
+    // -----------------------------------------------------------------------
+    // |                               Classes                               |
+    // -----------------------------------------------------------------------
     //TODO: class/leveling methods
     public HeroClass getMainClass() {return mainClass;}
+    public EnumMap<HeroClass, Integer> getClassLevels() {return classLevels;}
 
-    public void setMainClass(HeroClass heroClass) {
+    public void changeMainClass(HeroClass heroClass) {
         if (mainClass == heroClass) throw new IllegalArgumentException("This unit is already a " + heroClass);
         if (mainClass.isHybrid()) throw new IllegalArgumentException("This unit is a permanent hybrid!");
         if (mainClass.isSpecialization() && !heroClass.isHybrid()) throw new IllegalArgumentException("Specialized units may only upgrade to hybrids!");
@@ -139,7 +153,6 @@ public class Unit {
     }
 
     public void levelUpClass(HeroClass heroClass) {
-        //TODO: handle class transformations for hybrid and specialization
         if (!classLevels.containsKey(heroClass)) throw new IllegalArgumentException("This unit does not have this class");
         if (getLevel() >= 20) throw new IllegalArgumentException("This unit is at the max level: " + getLevel());
         if (experience < expNeededForLvl(classLevels.get(heroClass) + 1)) throw new IllegalArgumentException("Not enough experience!");
@@ -153,25 +166,74 @@ public class Unit {
         mana = maxMana += 2 + heroClass.getManaPerLevel();
     }
 
+    public HeroClass handleClassTransformation() {
+        List<HeroClass> lvl5Classes = classLevels.entrySet().stream()
+                .filter(entry -> entry.getValue() >= 5)
+                .map(Map.Entry::getKey)
+                .toList();
+
+        //transform into specialization if one class is lvl 5 and you're not already a specialization
+        if (mainClass.isBase() && lvl5Classes.size() == 1) {
+            HeroClass hc = lvl5Classes.getFirst();
+            changeMainClass(HeroClass.comboOf(hc, hc));
+            return mainClass;
+        }
+
+        //if two classes are lvl 5, transform into a hybrid of the two as long as you are currently a specialization
+        else if (mainClass.isSpecialization() && lvl5Classes.size() == 2) {
+            HeroClass parentA = lvl5Classes.get(0);
+            HeroClass parentB = lvl5Classes.get(1);
+            changeMainClass(HeroClass.comboOf(parentA, parentB));
+            return mainClass;
+        }
+
+        //if above two don't work, then do nothing
+        return null;
+    }
+
+    public List<HeroClass> getClassesAvailableForLevelUp() {
+        List<HeroClass> classes = new ArrayList<>();
+        for (HeroClass heroClass : classLevels.keySet())
+            if (canLevelUpClass(heroClass)) classes.add(heroClass);
+        return classes;
+    }
+
+
+
+    // -----------------------------------------------------------------------
+    // |                           Levels & Exp                              |
+    // -----------------------------------------------------------------------
     public int getLevel() {
         return classLevels.values().stream()
                 .mapToInt(Integer::intValue)
                 .sum();
     }
 
+    public boolean canLevelUpClass(HeroClass heroClass) {
+        if (!classLevels.containsKey(heroClass)) return false;
+        if (getLevel() >= 20) return false;
+        return experience >= expNeededForLvl(classLevels.get(heroClass) + 1);
+    }
+
+    public boolean canLevelUpAny() {
+        for (HeroClass hc : classLevels.keySet()) {
+            if (canLevelUpClass(hc)) return true;
+        }
+        return false;
+    }
+
+    public int getExperience() {return experience;}
+    public void addExperience(int experience) {this.experience += experience;}
+
     public int expNeededForLvl(int lvl) {
         if (lvl <= 0) return 0;
         return expNeededForLvl(lvl - 1) + 500 + 75 * lvl + 20 * lvl * lvl;
     }
 
-    public int getExperience() {return experience;}
 
-    public void gainExperience(int experience) {this.experience += experience;}
-
-    public boolean isAlive() {return health > 0;}
-
-    public boolean isDead() {return health <= 0;}
-
+    // -----------------------------------------------------------------------
+    // |                               Other                                 |
+    // -----------------------------------------------------------------------
     @Override
     public String toString() {
         return String.format("[%s]\tatk: %d|def: %d|hp: %d|mp: %d|lvl: %d|xp: %d", name, attack,  defense, health, mana, getLevel(), experience);

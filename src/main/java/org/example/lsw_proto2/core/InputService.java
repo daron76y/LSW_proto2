@@ -15,4 +15,6 @@ public interface InputService {
     Items chooseItem();
 
     Unit chooseUnit(List<Unit> recruits);
+
+    HeroClass chooseHeroClass(List<HeroClass> heroClasses);
 }

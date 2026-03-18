@@ -36,7 +36,7 @@ public enum HeroClass {
         )
     ),
 
-    //hybrid classes
+    //combo classes
     PRIEST(ORDER, ORDER,
         List.of(
             new Heal(35, 1)
@@ -112,15 +112,15 @@ public enum HeroClass {
     private final HeroClass parentA;
     private final HeroClass parentB;
 
-    //static hybrid map
-    private static final Map<Set<HeroClass>, HeroClass> hybrids = new HashMap<>();
+    //static combo map
+    private static final Map<Set<HeroClass>, HeroClass> combos = new HashMap<>();
     static {
         for (HeroClass heroClass : HeroClass.values()) { //iterate through all classes
-            if (heroClass.parentA != null && heroClass.parentB != null) { //this is a hybrid
+            if (heroClass.parentA != null && heroClass.parentB != null) { //this is a combo class
                 Set<HeroClass> pair = new HashSet<>(Set.of());
                 pair.add(heroClass.parentA);
                 pair.add(heroClass.parentB);
-                hybrids.put(pair, heroClass);
+                combos.put(pair, heroClass);
             }
         }
     }
@@ -137,7 +137,7 @@ public enum HeroClass {
         this.parentB = null;
     }
 
-    //hybrid class constructor
+    //combo class constructor
     HeroClass(HeroClass parentA, HeroClass parentB, List<Ability> abilities, List<Effect> effects) {
         this.attackPerLevel = parentA.attackPerLevel + parentB.attackPerLevel;
         this.defensePerLevel = parentA.defensePerLevel + parentB.defensePerLevel;
@@ -159,8 +159,11 @@ public enum HeroClass {
     public HeroClass getParentA() {return parentA;}
     public HeroClass getParentB() {return parentB;}
 
-    public static HeroClass hybridOf(HeroClass a, HeroClass b) {
-        return hybrids.get(Set.of(a, b));
+    public static HeroClass comboOf(HeroClass a, HeroClass b) {
+        Set<HeroClass> pair = new HashSet<>(Set.of());
+        pair.add(a);
+        pair.add(b);
+        return combos.get(pair);
     }
 
     public boolean isHybrid() {return parentA != null && parentB != null && parentA != parentB;}

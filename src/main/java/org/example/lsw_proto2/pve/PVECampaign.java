@@ -6,4 +6,5 @@ public interface PVECampaign {
     void quit();
     void useItem();
     void viewParty();
+    void levelUpUnit();
 }
