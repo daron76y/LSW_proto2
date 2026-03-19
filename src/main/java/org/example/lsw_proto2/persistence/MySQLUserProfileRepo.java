@@ -41,7 +41,6 @@ public class MySQLUserProfileRepo implements UserProfileRepository {
     // -----------------------------------------------------------------------
     // JDBC connection string for a LOCAL MySQL server
     // Format: jdbc:mysql://<host>:<port>/<database>?<options>
-    // The database must already exist (CREATE DATABASE lsw_game;).
     // Tables are created automatically on first run.
     public static final String DEFAULT_URL =
             "jdbc:mysql://localhost:3306/lsw_game" +
@@ -67,11 +66,15 @@ public class MySQLUserProfileRepo implements UserProfileRepository {
             .visibility(PropertyAccessor.SETTER, JsonAutoDetect.Visibility.NONE)
             .build();
 
+    //singleton instance
+    private static MySQLUserProfileRepo instance;
+
     // -----------------------------------------------------------------------
     // |                            Constructor                              |
     // -----------------------------------------------------------------------
 
-    public MySQLUserProfileRepo(Connection connection) {
+    //private for singleton pattern
+    private MySQLUserProfileRepo(Connection connection) {
         this.connection = connection;
         createTableIfNotExists();
     }
@@ -83,17 +86,20 @@ public class MySQLUserProfileRepo implements UserProfileRepository {
      * @param username MySQL user (e.g. "root")
      * @param password MySQL password
      */
-    public static MySQLUserProfileRepo connect(String username, String password) {
+    public static synchronized MySQLUserProfileRepo connect(String username, String password) {
         return connect(DEFAULT_URL, username, password);
     }
 
-    public static MySQLUserProfileRepo connect(String url, String username, String password) {
-        try {
-            Connection conn = DriverManager.getConnection(url, username, password);
-            return new MySQLUserProfileRepo(conn);
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to connect to MySQL at: " + url, e);
+    public static synchronized MySQLUserProfileRepo connect(String url, String username, String password) {
+        if (instance == null) {
+            try {
+                Connection conn = DriverManager.getConnection(url, username, password);
+                instance = new MySQLUserProfileRepo(conn);
+            } catch (SQLException e) {
+                throw new RuntimeException("Failed to connect to MySQL at: " + url, e);
+            }
         }
+        return instance;
     }
 
     // -----------------------------------------------------------------------
