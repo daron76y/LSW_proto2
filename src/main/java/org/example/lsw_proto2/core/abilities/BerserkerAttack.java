@@ -7,6 +7,7 @@ import org.example.lsw_proto2.core.Unit;
 import org.example.lsw_proto2.core.effects.Stunned;
 
 public class BerserkerAttack extends Ability {
+    private BerserkerAttack() { super(0); } //jackson
     public BerserkerAttack(int manaCost) {super(manaCost);}
 
     @Override

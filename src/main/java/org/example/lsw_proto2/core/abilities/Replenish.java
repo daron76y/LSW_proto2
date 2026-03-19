@@ -7,6 +7,8 @@ import org.example.lsw_proto2.core.Unit;
 public class Replenish extends Ability {
     private final int effectMultiplier; //for prophet upgrade
 
+    private Replenish() { super(0); this.effectMultiplier = 0; } //jackson
+
     public Replenish(int manaCost, int effectMultiplier) {
         super(manaCost);
         this.effectMultiplier = effectMultiplier;

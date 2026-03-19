@@ -65,7 +65,7 @@ public class GUIInputService implements InputService {
                     throw new IllegalArgumentException("Unknown action: " + tokens.get(0));
             }
         } catch (Exception e) {
-            // Print the error and loop — engine stays blocked waiting for valid input
+            // Print the error and loop - engine stays blocked waiting for valid input
             queue.add(""); // won't be used; we loop back to waitForLine ourselves
             // Re-throw so BattleEngine's retry loop catches it and prints via output
             throw new RuntimeException(e.getMessage());
@@ -118,7 +118,7 @@ public class GUIInputService implements InputService {
     }
 
     // -----------------------------------------------------------------------
-    // Token parser — handles quoted strings with spaces, i.e, cast "Chain Lightning" Goblin
+    // Token parser - handles quoted strings with spaces, i.e, cast "Chain Lightning" Goblin
     // -----------------------------------------------------------------------
     private List<String> parseTokens(String input) {
         List<String> tokens = new java.util.ArrayList<>();

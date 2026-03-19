@@ -10,6 +10,8 @@ import java.util.Comparator;
 public class Heal extends Ability {
     private final int effectMultiplier; //for prophet upgrade
 
+    private Heal() { super(0); this.effectMultiplier = 0; } //jackson
+
     public Heal(int manaCost, int effectMultiplier) {
         super(manaCost);
         this.effectMultiplier = effectMultiplier;

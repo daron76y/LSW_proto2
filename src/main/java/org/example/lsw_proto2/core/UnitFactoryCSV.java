@@ -62,7 +62,7 @@ public class UnitFactoryCSV implements UnitFactory {
             Unit enemy = new Unit(
                 name,
                 3 * level,
-                5 + level,
+                level,
                 10 + level,
                 0,
                 HeroClass.WARRIOR

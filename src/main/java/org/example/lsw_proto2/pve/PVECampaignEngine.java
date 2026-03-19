@@ -6,18 +6,28 @@ import org.example.lsw_proto2.io.AIInputService;
 
 import java.util.List;
 import java.util.Random;
+import java.util.function.Consumer;
 
 public class PVECampaignEngine implements PVECampaign {
     private final Party playerParty;
     private final InputService input;
     private final OutputService output;
 
-    private final int totalRooms = 30;
+    private final int totalRooms = 30; //Guys, change this to quickly finish a campaign without going through 30 rooms
     private enum RoomTypes {BATTLE, INN}
     private final RoomTypes[] rooms = new RoomTypes[totalRooms + 1];
     private int currentRoom;
     private int lastInnCheckpoint = 0;
+    private boolean quit = false;
     private final UnitFactory unitFactory = new UnitFactoryCSV();
+
+    //for updating a GUI's (if exists) room number label. Generic enough to be effectively decoupled
+    private Consumer<Integer> onRoomChanged = null;
+    public void setOnRoomChanged(Consumer<Integer> onRoomChanged) {this.onRoomChanged = onRoomChanged;}
+
+    //similarly, for quitting and saving the campaign. SceneManager will use this to save progress to the repo
+    private Consumer<Integer> onQuit = null;
+    public void setOnQuit(Consumer<Integer> onQuit) {this.onQuit = onQuit;}
 
     public PVECampaignEngine(Party playerParty, InputService input, OutputService output, int currentRoom) {
         this.playerParty = playerParty;
@@ -29,7 +39,7 @@ public class PVECampaignEngine implements PVECampaign {
     @Override
     public void startCampaign() {
         output.showMessage("Starting PvE campaign with party: " + playerParty.getName());
-        while (currentRoom < totalRooms) {
+        while (!quit && currentRoom < totalRooms) {
             output.showMessage("Current room: " + currentRoom);
             try {
                 output.showMessage("Actions: [next] [use item] [view party] [level up] [quit]");
@@ -39,13 +49,14 @@ public class PVECampaignEngine implements PVECampaign {
                 output.showMessage(e.getMessage());
             }
         }
-        output.showMessage("Campaign Finished!");
+        if (!quit) output.showMessage("Campaign Finished!");
     }
 
     @Override
     public void nextRoom() {
         output.showMessage("Entering the next room...");
         currentRoom++;
+        if (onRoomChanged != null) onRoomChanged.accept(currentRoom); //update GUI label with the new room number
 
         //if this room has never been visited/discovered before
         if (rooms[currentRoom] == null) {
@@ -68,7 +79,7 @@ public class PVECampaignEngine implements PVECampaign {
     private void enterBattle() {
         output.showMessage("Entering a battle...");
         Party enemyParty = unitFactory.generateEnemyParty(playerParty.getCumulativeLevels());
-        BattleEngine battle = new BattleEngine(playerParty, enemyParty, input, new AIInputService(), output); //TODO Ai input
+        BattleEngine battle = new BattleEngine(playerParty, enemyParty, input, new AIInputService(), output);
         Party winner = battle.runBattle();
 
         if (winner == playerParty) { //player is victorious
@@ -95,11 +106,15 @@ public class PVECampaignEngine implements PVECampaign {
         }
         else { //player died
             output.showMessage("Defeat!");
+
+            //battle penalties
+            playerParty.setGold(Math.max(0, playerParty.getGold() - (int)(playerParty.getGold() * 0.10))); //-10% gold
+            for (Unit unit : playerParty.getAliveUnits())
+                unit.loseExperience((int)(unit.getExperience() * 0.30)); //-30% experience per unit
+
             output.showMessage("Returning to previous inn!");
             currentRoom = lastInnCheckpoint;
             enterInn();
-
-            //TODO: -10% gold -30% hero exp
         }
     }
 
@@ -176,7 +191,9 @@ public class PVECampaignEngine implements PVECampaign {
 
     @Override
     public void quit() {
-        //TODO:
+        output.showMessage("Saving campaign progress at room " + currentRoom + "...");
+        quit = true;
+        if (onQuit != null) onQuit.accept(currentRoom);
     }
 
     @Override

@@ -7,6 +7,8 @@ import org.example.lsw_proto2.core.Unit;
 public class Fireball extends Ability {
     private final int damageMultiplier;
 
+    private Fireball() { super(0); this.damageMultiplier = 0; } //jackson
+
     public Fireball(int manaCost, int damageMultiplier) {
         super(manaCost);
         this.damageMultiplier = damageMultiplier; //double damage for sorcerer upgrade

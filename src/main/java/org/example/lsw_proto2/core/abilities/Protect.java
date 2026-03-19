@@ -11,6 +11,8 @@ import org.example.lsw_proto2.core.effects.Shield;
 public class Protect extends Ability {
     private final int effectMultiplier; //for prophet upgrade
 
+    private Protect() { super(0); this.effectMultiplier = 0; } //jackson
+
     public Protect(int manaCost, int effectMultiplier) {
         super(manaCost);
         this.effectMultiplier = effectMultiplier;

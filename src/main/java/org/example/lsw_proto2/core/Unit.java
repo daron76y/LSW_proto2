@@ -1,14 +1,26 @@
 package org.example.lsw_proto2.core;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import org.example.lsw_proto2.core.abilities.Ability;
 import org.example.lsw_proto2.core.effects.Effect;
 
 import java.util.*;
 
+@JsonAutoDetect(
+    fieldVisibility    = JsonAutoDetect.Visibility.ANY,
+    getterVisibility   = JsonAutoDetect.Visibility.NONE,
+    isGetterVisibility = JsonAutoDetect.Visibility.NONE
+)
+@JsonPropertyOrder({ //ensures health and mana get set before the maxes to avoid any strange int default to 0 errors. TODO: May be redundant.
+        "name", "mainClass", "classLevels", "experience",
+        "attack", "defense",
+        "maxHealth", "maxMana", "health", "mana",
+        "abilities", "effects"
+})
 public class Unit {
     private final String name;
 
-    //TODO: classes and levels
     private final EnumMap<HeroClass, Integer> classLevels;
     private HeroClass mainClass;
 
@@ -23,11 +35,18 @@ public class Unit {
     private int health;
     private int mana;
 
+    /** No-arg constructor for Jackson deserialization. */
+    private Unit() {
+        this.name = null;
+        this.classLevels = new EnumMap<>(HeroClass.class);
+        this.effects = new ArrayList<>();
+        this.abilities = new ArrayList<>();
+    }
+
     //Constructor
     public Unit(String name, int atk, int def, int maxHp, int maxMp, HeroClass startingClass) {
         this.name = name;
 
-        //TODO: classes
         classLevels = new EnumMap<>(HeroClass.class);
         classLevels.put(HeroClass.ORDER, 0);
         classLevels.put(HeroClass.CHAOS, 0);
@@ -133,7 +152,6 @@ public class Unit {
     // -----------------------------------------------------------------------
     // |                               Classes                               |
     // -----------------------------------------------------------------------
-    //TODO: class/leveling methods
     public HeroClass getMainClass() {return mainClass;}
     public EnumMap<HeroClass, Integer> getClassLevels() {return classLevels;}
 
@@ -224,6 +242,7 @@ public class Unit {
 
     public int getExperience() {return experience;}
     public void addExperience(int experience) {this.experience += experience;}
+    public void loseExperience(int experience) {this.experience -= Math.min(experience, this.experience);}
 
     public int expNeededForLvl(int lvl) {
         if (lvl <= 0) return 0;

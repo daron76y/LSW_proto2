@@ -29,8 +29,12 @@ public class UserProfile {
     private final String username;
     private final String password;
     private int score;
-    List<Party> savedParties;
+    private int pvpWins;
+    private int pvpLosses;
+    List<Party> savedParties; //parties for PVE
     List<CampaignProgress> campaignSaves;
+    List<Party> pvpParties; //parties for PVP
+    public static final int MAX_PVP_PARTIES = 5;
 
     public UserProfile() {
         this.username = null;
@@ -41,8 +45,11 @@ public class UserProfile {
         this.username = username;
         this.password = password;
         score = 0;
+        pvpWins = 0;
+        pvpLosses = 0;
         savedParties = new ArrayList<>();
         campaignSaves = new ArrayList<>();
+        pvpParties = new ArrayList<>();
     }
 
     public String getUsername() {return username;}
@@ -62,12 +69,15 @@ public class UserProfile {
 
         savedParties.add(party);
     }
+
     public void deleteParty(Party party) {
         savedParties.remove(party);
         //remove campaigns referencing this party
         campaignSaves.removeIf(c -> c.getPartyName().equals(party.getName()));
     }
+
     public List<Party> getSavedParties() {return savedParties;}
+
     public Optional<Party> getPartyByName(String partyName) {
         return savedParties.stream()
                 .filter(p -> p.getName().equals(partyName))
@@ -84,16 +94,51 @@ public class UserProfile {
         deleteCampaignByName(campaignName);
         campaignSaves.add(new CampaignProgress(campaignName, partyName, currentRoom));
     }
+
     public void deleteCampaignByName(String name) {
         campaignSaves.removeIf(c -> c.getCampaignName().equals(name));
     }
+
     public List<CampaignProgress> getCampaignSaves() {return campaignSaves;}
+
     public Optional<CampaignProgress> getCampaignByName(String campaignName) {
         return campaignSaves.stream()
                 .filter(c -> c.getCampaignName().equals(campaignName))
                 .findFirst();
     }
+
     public void updateCampaignRoom(String campaignName, int newRoom) {
         getCampaignByName(campaignName).ifPresent(c -> c.setCurrentRoom(newRoom));
+    }
+
+    //pvp wins/losses ==============================
+    public int getPvpWins()    { return pvpWins; }
+    public int getPvpLosses()  { return pvpLosses; }
+    public void setPvpWins(int wins)     { this.pvpWins = wins; } //jackson
+    public void setPvpLosses(int losses) { this.pvpLosses = losses; } //jackson
+    public void addPvpWin()    { pvpWins++; }
+    public void addPvpLoss()   { pvpLosses++; }
+
+    //pvp parties ==================================
+    public List<Party> getPvpParties() {return pvpParties;}
+
+    public Optional<Party> getPvpPartyByName(String name) {
+        return pvpParties.stream().filter(p -> p.getName().equals(name)).findFirst();
+    }
+
+    public void addPvpParty(Party party) {
+        if (pvpParties.size() >= MAX_PVP_PARTIES)
+            throw new IllegalStateException("PvP party roster is full (max " + MAX_PVP_PARTIES + ").");
+        pvpParties.add(party);
+    }
+
+    public void replacePvpParty(int index, Party newParty) {
+        if (index < 0 || index >= pvpParties.size())
+            throw new IndexOutOfBoundsException("Invalid party slot: " + index);
+        pvpParties.set(index, newParty);
+    }
+
+    public void removePvpParty(Party party) {
+        pvpParties.remove(party);
     }
 }

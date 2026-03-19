@@ -1,9 +1,25 @@
 package org.example.lsw_proto2.core.effects;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.example.lsw_proto2.core.OutputService;
 import org.example.lsw_proto2.core.Party;
 import org.example.lsw_proto2.core.Unit;
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = Shield.class,      name = "Shield"),
+        @JsonSubTypes.Type(value = FireShield.class,  name = "FireShield"),
+        @JsonSubTypes.Type(value = ManaBurn.class,    name = "ManaBurn"),
+        @JsonSubTypes.Type(value = SneakAttack.class, name = "SneakAttack"),
+        @JsonSubTypes.Type(value = Stunned.class,     name = "Stunned"),
+})
+@JsonAutoDetect(
+        fieldVisibility    = JsonAutoDetect.Visibility.ANY,
+        getterVisibility   = JsonAutoDetect.Visibility.NONE,
+        isGetterVisibility = JsonAutoDetect.Visibility.NONE
+)
 public abstract class Effect {
     private int duration; //how many turns
 

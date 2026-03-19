@@ -6,6 +6,8 @@ import org.example.lsw_proto2.core.Unit;
 public class Shield extends Effect {
     private int shieldAmount;
 
+    private Shield() { super(-1); this.shieldAmount = 0; } //jackson
+
     public Shield(int shieldAmount) {
         super(-1); //shield effect is infinite
         this.shieldAmount = shieldAmount;

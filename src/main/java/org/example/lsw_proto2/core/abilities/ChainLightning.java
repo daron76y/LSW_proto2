@@ -11,6 +11,8 @@ import java.util.List;
 public class ChainLightning extends Ability {
     private final double subsequentDamageMultiplier; //for invoker upgrade
 
+    private ChainLightning() { super(0); this.subsequentDamageMultiplier = 0; } //jackson
+
     public ChainLightning(int manaCost, double subsequentDamageMultiplier) {
         super(manaCost);
         this.subsequentDamageMultiplier = subsequentDamageMultiplier;

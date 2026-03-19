@@ -4,6 +4,7 @@ import org.example.lsw_proto2.battle.BattleEngine;
 import org.example.lsw_proto2.core.InputService;
 import org.example.lsw_proto2.core.OutputService;
 import org.example.lsw_proto2.core.Party;
+import org.example.lsw_proto2.core.Unit;
 
 public class PvPMatchEngine {
     private final Party player1Party;
@@ -18,8 +19,21 @@ public class PvPMatchEngine {
         this.output = output;
     }
 
-    public void startMatch() {
+    public Party startMatch() {
         BattleEngine battle = new BattleEngine(player1Party, player2party, input, input, output);
-        battle.runBattle();
+        Party winner = battle.runBattle();
+
+        //fully restore both parties
+        reviveParty(player1Party);
+        reviveParty(player2party);
+
+        return winner;
+    }
+
+    private void reviveParty(Party party) {
+        for (Unit unit : party.getUnits()) {
+            unit.setHealth(unit.getMaxHealth());
+            unit.setMana(unit.getMaxMana());
+        }
     }
 }

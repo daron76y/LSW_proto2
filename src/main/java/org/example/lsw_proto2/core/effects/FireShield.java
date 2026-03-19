@@ -6,6 +6,8 @@ import org.example.lsw_proto2.core.Unit;
 public class FireShield extends Shield {
     private final double reflectPercent;
 
+    private FireShield() { super(0); this.reflectPercent = 0; } //jackson
+
     public FireShield(int shieldAmount, double reflectPercent) {
         super(-1); //infinite duration fire shield
         this.reflectPercent = reflectPercent;

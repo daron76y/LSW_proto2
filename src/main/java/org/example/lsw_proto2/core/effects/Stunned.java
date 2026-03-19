@@ -1,6 +1,7 @@
 package org.example.lsw_proto2.core.effects;
 
 public class Stunned extends Effect {
+    private Stunned() { super(1); } //jackson
     public Stunned(int duration) {
         super(duration);
     }

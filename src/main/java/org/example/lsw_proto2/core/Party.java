@@ -1,14 +1,29 @@
 package org.example.lsw_proto2.core;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 
+@JsonAutoDetect(
+        fieldVisibility    = JsonAutoDetect.Visibility.ANY,
+        getterVisibility   = JsonAutoDetect.Visibility.NONE,
+        isGetterVisibility = JsonAutoDetect.Visibility.NONE
+)
 public class Party {
     private final String name;
     private int gold;
     private final EnumMap<Items, Integer> inventory;
     private final List<Unit> units;
+
+    /** No-arg constructor for Jackson deserialization. */
+    private Party() {
+        this.name = null;
+        this.units = new ArrayList<>();
+        this.gold = 0;
+        this.inventory = new EnumMap<>(Items.class);
+    }
 
     //Constructors
     public Party(String name) {
