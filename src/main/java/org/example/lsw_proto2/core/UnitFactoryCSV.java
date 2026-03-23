@@ -2,6 +2,7 @@ package org.example.lsw_proto2.core;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -79,7 +80,13 @@ public class UnitFactoryCSV implements UnitFactory {
         for (int i = 0; i < numRecruits; i++) {
             String name = getRandomName(HERO_NAMES);
             int level = 1 + random.nextInt(3); //lvl 1-3
-            HeroClass heroClass = HeroClass.values()[random.nextInt(HERO_CLASSES.length)];
+
+            //ensure recruits only get assigned to a base class, not a combo class
+            HeroClass[] baseClasses = Arrays.stream(HeroClass.values())
+                    .filter(HeroClass::isBase)
+                    .toArray(HeroClass[]::new);
+            HeroClass heroClass = baseClasses[random.nextInt(baseClasses.length)];
+
             recruits.add(new Unit(name, heroClass));
         }
         return recruits;

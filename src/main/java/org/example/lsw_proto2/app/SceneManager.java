@@ -77,6 +77,7 @@ public class SceneManager {
         Party party = new Party(partyName);
         party.setGold(200);
         Unit startingHero = new Unit(heroName, heroClass);
+        //startingHero.addExperience(2000000);
         party.addUnit(startingHero);
 
         // Save the party to the user profile so it shows up in the menu later
