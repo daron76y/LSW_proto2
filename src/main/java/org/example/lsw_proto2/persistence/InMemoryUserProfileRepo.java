@@ -15,18 +15,8 @@ public class InMemoryUserProfileRepo implements UserProfileRepository {
     }
 
     @Override
-    public void deleteUserByName(String username) {
-        store.remove(username);
-    }
-
-    @Override
     public Optional<UserProfile> getUserByName(String username) {
         return Optional.ofNullable(store.get(username));
-    }
-
-    @Override
-    public List<UserProfile> getAllUsers() {
-        return new ArrayList<>(store.values());
     }
 
     @Override

@@ -10,7 +10,6 @@ public class UnitFactoryCSV implements UnitFactory {
     private static final Random random = new Random();
     private static final List<String> ENEMY_NAMES = loadNamesFromFile("/org/example/LSW_proto2/enemy_names.txt");
     private static final List<String> HERO_NAMES = loadNamesFromFile("/org/example/LSW_proto2/hero_names.txt");
-    private static final HeroClass[] HERO_CLASSES = HeroClass.values();
 
     private static List<String> loadNamesFromFile(String filename) {
         List<String> names = new ArrayList<>();
