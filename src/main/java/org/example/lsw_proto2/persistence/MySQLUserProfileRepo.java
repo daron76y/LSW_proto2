@@ -13,17 +13,13 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * MySQL-backed implementation of UserProfileRepository.
- *
- * Connects to a local MySQL server. Configure the connection URL, username,
- * and password in SceneManager.buildMySQLRepo() (or wherever you construct this).
- *
+ * MySQL implementation of UserProfileRepository.
+ * Connects to a local MySQL server. Configures the connection URL, username,
+ * and password in SceneManager.buildMySQLRepo().
  * Parties (savedParties, pvpParties) and campaign saves are stored as JSON columns.
- * Jackson handles serialization/deserialization with full polymorphic type info for
- * Ability and Effect subclasses, so all runtime state is faithfully round-tripped.
- *
- * Schema (auto-created on first run):
- *
+ * Jackson handles serialization/deserialization with full polymorphism type info for
+ * Ability and Effect subclasses, so all runtime state is properly reconstructed.
+ * Schema (automatically made on the first run):
  *   CREATE TABLE IF NOT EXISTS user_profiles (
  *       username       VARCHAR(50)  PRIMARY KEY,
  *       password       VARCHAR(255) NOT NULL,
@@ -36,12 +32,12 @@ import java.util.Optional;
  *   );
  */
 public class MySQLUserProfileRepo implements UserProfileRepository {
-    // -----------------------------------------------------------------------
-    // |                      JDBC Connection                                |
-    // -----------------------------------------------------------------------
-    // JDBC connection string for a LOCAL MySQL server
-    // Format: jdbc:mysql://<host>:<port>/<database>?<options>
-    // Tables are created automatically on first run.
+    //-----------------------------------------------------------------------
+    //|                      JDBC Connection                                |
+    //-----------------------------------------------------------------------
+    //JDBC connection string for a local MySQL server
+    //format: jdbc:mysql://<host>:<port>/<database>?<options>
+    //tables are created automatically on first run.
     public static final String DEFAULT_URL =
             "jdbc:mysql://localhost:3306/lsw_game" +
                     "?useSSL=false" +
@@ -52,10 +48,9 @@ public class MySQLUserProfileRepo implements UserProfileRepository {
     private final Connection connection;
 
     /**
-     * ObjectMapper configured to:
-     * - Access private fields directly (via @JsonAutoDetect on model classes)
-     * - Write to final fields via reflection (needed for Unit.name, Party.name, etc.)
-     * - Override access modifiers (needed to reach private final fields)
+     * ObjectMapper configured to access private fields directly (via @JsonAutoDetect!),
+     * write to final fields via java reflection (needed for Unit name, Party name, etc.),
+     * and override access modifiers (needed to access private final fields)
      */
     private static final ObjectMapper MAPPER = JsonMapper.builder()
             .enable(MapperFeature.ALLOW_FINAL_FIELDS_AS_MUTATORS)
@@ -66,14 +61,14 @@ public class MySQLUserProfileRepo implements UserProfileRepository {
             .visibility(PropertyAccessor.SETTER, JsonAutoDetect.Visibility.NONE)
             .build();
 
-    //singleton instance
+    //singleton instance for Singleton Pattern
     private static MySQLUserProfileRepo instance;
 
-    // -----------------------------------------------------------------------
-    // |                            Constructor                              |
-    // -----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //|                            Constructor                              |
+    //-----------------------------------------------------------------------
 
-    //private for singleton pattern
+    //private for Singleton pattern
     private MySQLUserProfileRepo(Connection connection) {
         this.connection = connection;
         createTableIfNotExists();
@@ -83,13 +78,14 @@ public class MySQLUserProfileRepo implements UserProfileRepository {
      * Factory method - creates a connection to the local MySQL server and
      * returns a ready-to-use repo instance.
      *
-     * @param username MySQL user (e.g. "root")
+     * @param username MySQL user (i.e, "root")
      * @param password MySQL password
      */
     public static synchronized MySQLUserProfileRepo connect(String username, String password) {
         return connect(DEFAULT_URL, username, password);
     }
 
+    //this overloaded version follows the Singleton pattern by instantiating only if the instance is null
     public static synchronized MySQLUserProfileRepo connect(String url, String username, String password) {
         if (instance == null) {
             try {
@@ -102,9 +98,9 @@ public class MySQLUserProfileRepo implements UserProfileRepository {
         return instance;
     }
 
-    // -----------------------------------------------------------------------
-    // |                          MySQL Schema                               |
-    // -----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //|                          MySQL schema                               |
+    //-----------------------------------------------------------------------
 
     private void createTableIfNotExists() {
         String sql = """
@@ -145,6 +141,8 @@ public class MySQLUserProfileRepo implements UserProfileRepository {
                     campaign_saves = VALUES(campaign_saves),
                     pvp_parties    = VALUES(pvp_parties)
                 """;
+
+        //create the PreparedStatement
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, user.getUsername());
             ps.setString(2, user.getPassword());
@@ -208,13 +206,13 @@ public class MySQLUserProfileRepo implements UserProfileRepository {
         }
     }
 
-    // -----------------------------------------------------------------------
-    // |                              Helpers                                |
-    // -----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //|                              Helpers                                |
+    //-----------------------------------------------------------------------
 
     /**
      * Reconstruct a UserProfile from the current ResultSet row.
-     * Each JSON column is deserialized back into the appropriate Java type.
+     * each json column is deserialized back into the corresponding Java type.
      */
     private UserProfile buildUserProfile(ResultSet rs) throws Exception {
         UserProfile user = new UserProfile(
@@ -227,21 +225,21 @@ public class MySQLUserProfileRepo implements UserProfileRepository {
         user.setPvpWins(rs.getInt("pvp_wins"));
         user.setPvpLosses(rs.getInt("pvp_losses"));
 
-        // saved_parties (PvE campaign parties)
+        //saved_parties (PvE campaign parties)
         String savedPartiesJson = rs.getString("saved_parties");
         if (savedPartiesJson != null) {
             List<Party> parties = fromJsonList(savedPartiesJson, Party.class);
             parties.forEach(user::saveParty);
         }
 
-        // campaign_saves
+        //campaign_saves
         String campaignJson = rs.getString("campaign_saves");
         if (campaignJson != null) {
             List<UserProfile.CampaignProgress> saves = fromJsonList(campaignJson, UserProfile.CampaignProgress.class);
             saves.forEach(c -> user.saveCampaign(c.getCampaignName(), c.getPartyName(), c.getCurrentRoom()));
         }
 
-        // pvp_parties
+        //pvp_parties
         String pvpJson = rs.getString("pvp_parties");
         if (pvpJson != null) {
             List<Party> pvpParties = fromJsonList(pvpJson, Party.class);

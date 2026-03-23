@@ -7,18 +7,16 @@ import org.example.lsw_proto2.core.*;
 import java.util.List;
 
 /**
- * Implements OutputService by appending formatted text to a shared TextArea.
- * Every method is thread-safe: output is dispatched to the JavaFX thread via
- * Platform.runLater(), since the game engine runs on a background thread!
+ * Implements OutputService by appending formatted text to a shared TextArea in the GUI.
  */
 public class GUIOutputService implements OutputService {
-    private final TextArea console;
+    private final TextArea console; //the actual output console of our game
 
     public GUIOutputService(TextArea console) {
         this.console = console;
     }
 
-    //Instead of printing to System.out, we print to the console TextArea from the GameApp
+    //instead of printing to System.out, we print to the console TextArea from the GameApp
     private void print(String line) {
         Platform.runLater(() -> {
             console.appendText(line + "\n");
@@ -74,8 +72,7 @@ public class GUIOutputService implements OutputService {
     public void showItemShop() {
         print("==================== Item Shop ======================");
         for (Items item : Items.values()) {
-            print(String.format("%s\tCost: %dg\tHP: %d\tMP: %d",
-                    item, item.getCost(), item.getHealthBoost(), item.getManaBoost()));
+            print(String.format("%s\tCost: %dg\tHP: %d\tMP: %d", item, item.getCost(), item.getHealthBoost(), item.getManaBoost()));
         }
         print("=====================================================");
     }

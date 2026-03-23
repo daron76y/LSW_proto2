@@ -11,12 +11,15 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * Simple AI-based decision-making implementation of InputService for PVE enemies
+ */
 public class AIInputService implements InputService {
     @Override
     public BattleCommand chooseBattleCommand(Unit unit, Party allyParty, Party enemyParty) {
         try {Thread.sleep(1000);} catch (InterruptedException e) {e.printStackTrace();}
 
-        if (unit.getHealth() < unit.getMaxHealth() * 0.25) { //defend
+        if (unit.getHealth() < unit.getMaxHealth() * 0.25 && 1 == ThreadLocalRandom.current().nextInt(1, 5)) { //defend
             return new DefendCommand(unit);
         }
         else if (1 == ThreadLocalRandom.current().nextInt(1, 5)) { //wait

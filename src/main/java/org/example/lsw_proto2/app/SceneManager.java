@@ -27,7 +27,7 @@ public class SceneManager {
     //Change this one line to switch between repos
     private static final boolean USE_MYSQL = false;
 
-    // MySQL credentials. Only used when USE_MYSQL is true
+    //MySQL credentials. Only used when USE_MYSQL is true
     private static final String MYSQL_USER     = "root";
     private static final String MYSQL_PASSWORD = "Bruh123!?"; //GUYS, set your local MySQL password here!!! and switch USE_MSQL to true
 
@@ -40,6 +40,7 @@ public class SceneManager {
         stage.setTitle("Legends of Sword and Wand");
         stage.setOnCloseRequest(e -> System.exit(0));
 
+        //use SQL if the switch has been set to true. Otherwise, use an InMemory repo
         userRepo = USE_MYSQL
                 ? MySQLUserProfileRepo.connect(MYSQL_USER, MYSQL_PASSWORD)
                 : new InMemoryUserProfileRepo();
@@ -70,7 +71,7 @@ public class SceneManager {
 
     /**
      * Launch a brand-new campaign with the given party and chosen class.
-     * Called from NewCampaignScene once the player confirms their hero.
+     * called from NewCampaignScene once the player confirms their hero.
      */
     public void startNewCampaign(String heroName, HeroClass heroClass, String partyName) {
         Party party = new Party(partyName);
@@ -87,7 +88,7 @@ public class SceneManager {
 
     /**
      * Resume an existing campaign.
-     * Called from MainMenuScene when the player clicks a saved campaign.
+     * called from MainMenuScene when the player clicks a saved campaign.
      */
     public void resumeCampaign(UserProfile.CampaignProgress progress) {
         Party party = currentUser.getPartyByName(progress.getPartyName())
@@ -95,7 +96,7 @@ public class SceneManager {
         showGame(party, progress.getCurrentRoom());
     }
 
-    /** Show the campaign-complete save/discard screen (fired when room 30 is reached). */
+    /** Show the campaign-complete save/discard screen (called when room 30 is reached). */
     public void showCampaignComplete(Party completedParty) {
         //calculate final score
         int score = completedParty.getUnits().stream().mapToInt(Unit::getLevel).sum() * 100;
@@ -146,7 +147,7 @@ public class SceneManager {
 
     /**
      * Launch the PvP battle between two players.
-     * Called from PvpSetupScene once both parties are confirmed.
+     * called from PvpSetupScene once both parties are confirmed.
      */
     public void startPvpMatch(UserProfile player1, Party p1Party, UserProfile player2, Party p2Party) {
         PvpGameScene gameScene = new PvpGameScene(this, player1, p1Party, player2, p2Party);

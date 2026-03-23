@@ -12,11 +12,9 @@ import java.util.List;
 
 /**
  * Main menu shown after login.
- *
  * Layout:
- *   TOP    - "Welcome, [username]!" + Log Out button
- *   LEFT   - Saved Campaigns list (each row has a "Resume" button)
- *            + "New Campaign" button at the bottom
+ *   TOP    - "Welcome, username!" + Log Out button
+ *   LEFT   - Saved Campaigns list (each row has a "Resume" button) + "New Campaign" button at the bottom
  *   RIGHT  - PvP section
  */
 public class MainMenuScene {

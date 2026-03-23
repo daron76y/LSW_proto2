@@ -13,10 +13,8 @@ import java.util.List;
 
 /**
  * PvP setup flow - two steps shown in the same scene, swapping content:
- *
  *   STEP 1: Player 1 enters Player 2's username, then picks their own PvP party.
  *   STEP 2: Player 2 picks their PvP party (Player 1 looks away).
- *
  * Once both parties are chosen, SceneManager launches the PvP battle.
  */
 public class PvpSetupScene {
@@ -265,7 +263,7 @@ public class PvpSetupScene {
 
     public VBox getRoot() { return root; }
 
-    /** Spacer Utility */
+    /** Spacer utility */
     private static class Spacer extends Region {
         Spacer() { HBox.setHgrow(this, Priority.ALWAYS); }
     }

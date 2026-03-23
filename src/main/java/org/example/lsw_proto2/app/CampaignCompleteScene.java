@@ -13,12 +13,10 @@ import java.util.List;
 
 /**
  * Shown when a PvE campaign is completed (room 30 reached).
- *
  * The player chooses to either:
  *   - SAVE  the party into their PvP roster (max 5). If the roster is full,
  *           they are first asked which existing party to replace.
- *   - DISCARD the party and return to the main menu immediately.
- *
+ *   - DISCARD the party and return to the main menu
  * After saving, the campaign save entry is deleted from the user profile
  * and the player is returned to the main menu.
  */
@@ -38,7 +36,7 @@ public class CampaignCompleteScene {
         title.setFont(Font.font("Serif", FontWeight.BOLD, 26));
         title.setStyle("-fx-text-fill: #f0c040;");
 
-        Label subtitle = new Label("\"" + completedParty.getName() + "\" has conquered all 30 rooms.");
+        Label subtitle = new Label("\"" + completedParty.getName() + "\" has finished all 30 rooms.");
         subtitle.setFont(Font.font("Serif", 15));
         subtitle.setStyle("-fx-text-fill: #aaaaaa;");
 
@@ -106,10 +104,10 @@ public class CampaignCompleteScene {
         // |                              Handlers                               |
         // -----------------------------------------------------------------------
         discardBtn.setOnAction(e -> {
-            // Delete the campaign save entry, don't touch savedParties
+            //delete the campaign save entry, don't touch savedParties
             String campaignName = completedParty.getName() + "'s Campaign";
             user.deleteCampaignByName(campaignName);
-            // Also remove the party from savedParties (campaign parties) if present
+            //also remove the party from savedParties (campaign parties) if present
             user.getPartyByName(completedParty.getName()).ifPresent(user::deleteParty);
             sceneManager.getUserRepo().saveUser(user);
             sceneManager.showMainMenu();
@@ -119,10 +117,10 @@ public class CampaignCompleteScene {
             List<Party> pvpParties = user.getPvpParties();
 
             if (pvpParties.size() < UserProfile.MAX_PVP_PARTIES) {
-                // Roster has space - save immediately
+                //roster has space - save immediately
                 commitSave(sceneManager, user, completedParty, -1);
             } else {
-                // Roster full - reveal the replace picker
+                //roster full - reveal the replace party picker
                 saveBtn.setDisable(true);
                 replaceLabel.setVisible(true);
                 replaceLabel.setManaged(true);
@@ -179,18 +177,18 @@ public class CampaignCompleteScene {
     }
 
     /**
-     * Performs the actual save: removes the party from campaign saves,
-     * adds (or replaces) it in the PvP roster, persists, and returns to menu.
+     * Performs the actual save and removes the party from campaign saves,
+     * adds (or replaces) it in the PvP roster, saves, and returns to menu.
      *
      * @param slot  the roster index to replace, or -1 to append
      */
     private void commitSave(SceneManager sceneManager, UserProfile user, Party party, int slot) {
-        // Remove from campaign tracking
+        //remove from campaign tracking
         String campaignName = party.getName() + "'s Campaign";
         user.deleteCampaignByName(campaignName);
         user.getPartyByName(party.getName()).ifPresent(user::deleteParty);
 
-        // Add to PvP roster
+        //add to PvP roster
         if (slot < 0) user.addPvpParty(party);
         else user.replacePvpParty(slot, party);
 

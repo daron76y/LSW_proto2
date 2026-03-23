@@ -17,15 +17,10 @@ import java.util.function.Consumer;
 
 /**
  * The main game screen.
- *
  * Layout:
  *   TOP    - Campaign title bar
- *   CENTER - TextArea (read-only console log)
+ *   CENTER - TextArea (console)
  *   BOTTOM - TextField + Submit button
- *
- * The PVECampaignEngine runs on a background daemon thread.
- * When the campaign ends, the input field is disabled and a
- * "Back to Menu" button is revealed.
  */
 public class GameScene {
     private final VBox root;
@@ -37,7 +32,7 @@ public class GameScene {
     private final Runnable endCallback;
     private final Label campaignLabel;
 
-    // Fired when the campaign finishes naturally (room 30 reached). SceneManager uses this to show the CampaignCompleteScene
+    //fired when the campaign finishes naturally (room 30 reached). SceneManager uses this to show the CampaignCompleteScene
     private Runnable onCampaignComplete = null;
     public void setOnCampaignComplete(Runnable callback) {this.onCampaignComplete = callback;}
 
@@ -84,7 +79,7 @@ public class GameScene {
         // |                            Input row                                |
         // -----------------------------------------------------------------------
         TextField inputField = new TextField();
-        inputField.setPromptText("Type a command and press Enter…");
+        inputField.setPromptText("Type a command and press Enter!");
         inputField.setFont(Font.font("Monospaced", 13));
         inputField.setStyle("""
             -fx-background-color: #2a2a2a;
@@ -105,7 +100,7 @@ public class GameScene {
         """);
 
         // "Back to Menu" - only visible after campaign ends
-        Button backBtn = new Button("← Back to Menu");
+        Button backBtn = new Button("< Back to Menu");
         backBtn.setVisible(false);
         backBtn.setManaged(false);
         backBtn.setStyle("""
@@ -144,7 +139,7 @@ public class GameScene {
 
         // Store UI refs needed in startGame()
         this.endCallback = () -> Platform.runLater(() -> {
-            console.appendText("\n--- Campaign ended. ---\n");
+            console.appendText("\n--- Campaign ended! ---\n");
             inputField.setDisable(true);
             submitBtn.setDisable(true);
             backBtn.setVisible(true);

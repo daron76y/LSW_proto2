@@ -12,16 +12,14 @@ import org.example.lsw_proto2.core.UnitFactoryCSV;
 import java.util.List;
 
 /**
- * New-campaign setup screen.
- *
+ * New campaign setup screen.
  * The player is shown a randomly generated hero name (they can re-roll it),
- * and picks one of the four base classes (ORDER / CHAOS / WARRIOR / MAGE).
+ * and picks one of the four base classes (ORDER, CHAOS, WARRIOR, MAGE).
  * They also give their party a name before hitting "Start Campaign".
- *
  * Layout:
  *   TOP    - "New Campaign" title + Back button
  *   CENTER - Party name field
- *            Hero name field  + "Re-roll" button
+ *            Hero name field  + "Random" name button
  *            Class picker: four class-card buttons
  *            Selected class description
  *   BOTTOM - "Start Campaign" button
@@ -34,7 +32,7 @@ public class NewCampaignScene {
             HeroClass.MAGE
     );
 
-    //descriptions shown when the player hovers / selects a class
+    //descriptions shown when the player selects a class. Descriptions taken directly from the project description doc.
     private static final java.util.Map<HeroClass, String> CLASS_DESCRIPTIONS = java.util.Map.of(
             HeroClass.ORDER, "The powers of the universe need to be balanced! Balance brings stability, and stability brings prosperity. Within balance you can channel your inner energy and protect those around you. Servants of order have higher intelligence, can heal and protect.",
             HeroClass.CHAOS, "The universe expands and cracks. Through the ripples untamed energy flows! Servants of chaos can harness this energy and launch devastating attacks!\n\n",
@@ -150,7 +148,7 @@ public class NewCampaignScene {
         // -----------------------------------------------------------------------
         // |                                Start                                |
         // -----------------------------------------------------------------------
-        Button startBtn = new Button("Start Campaign →");
+        Button startBtn = new Button("Start Campaign");
         startBtn.setPrefWidth(220);
         startBtn.setStyle("""
             -fx-background-color: #3a7bd5;
@@ -164,6 +162,7 @@ public class NewCampaignScene {
             String partyName = partyNameField.getText().trim();
             String heroName  = heroNameField.getText().trim();
 
+            //validation with proper error messages
             if (partyName.isBlank()) {
                 errorLabel.setText("Please enter a party name.");
                 errorLabel.setVisible(true);
@@ -180,7 +179,7 @@ public class NewCampaignScene {
                 return;
             }
 
-            // Check for duplicate party name in the user's profile
+            //Check for duplicate party name in the user's profile
             if (sceneManager.getCurrentUser().getPartyByName(partyName).isPresent()) {
                 errorLabel.setText("You already have a campaign named \"" + partyName + "\". Choose a different party name.");
                 errorLabel.setVisible(true);
@@ -229,7 +228,7 @@ public class NewCampaignScene {
 
     private String generateHeroName() {
         try {
-            // Reuse the CSV factory's name pool via a temporary factory instance
+            // Reuse the CSV factory's names via a temporary factory instance
             var factory = new UnitFactoryCSV();
             var recruits = factory.generateHeroRecruits(1);
             return recruits.getFirst().getName();

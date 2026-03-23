@@ -8,10 +8,14 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+/**
+ * JavaFX based implementation of the InputService. Logic is mostly the same as ConsoleInputService
+ * With some extra methods to enforce the blocking logic using a BlockingQueue
+ */
 public class GUIInputService implements InputService {
     private final BlockingQueue<String> queue = new LinkedBlockingQueue<>();
 
-    //Called by GameApp when the player presses enters the text field
+    //called by GameApp when the player presses enters the text field
     public void submitInput(String line) {
         queue.add(line.trim());
     }
@@ -65,9 +69,9 @@ public class GUIInputService implements InputService {
                     throw new IllegalArgumentException("Unknown action: " + tokens.get(0));
             }
         } catch (Exception e) {
-            // Print the error and loop - engine stays blocked waiting for valid input
-            queue.add(""); // won't be used; we loop back to waitForLine ourselves
-            // Re-throw so BattleEngine's retry loop catches it and prints via output
+            //print the error and loop - engine stays blocked waiting for future valid input
+            queue.add(""); //won't be used cuz we loop back to waitForLine ourselves
+            //re-throw so BattleEngine's retry loop catches it and prints via output
             throw new RuntimeException(e.getMessage());
         }
     }

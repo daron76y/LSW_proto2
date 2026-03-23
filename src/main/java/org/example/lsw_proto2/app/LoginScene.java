@@ -9,10 +9,9 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
 
 /**
- * Login screen - the first thing the player sees.
- *
+ * Login screen - the first thing the player sees!
  * Layout:
- *   - Centered card with game title
+ *   - Card with game title
  *   - Username + Password fields
  *   - "Login" button  (validates against existing accounts)
  *   - "Create Account" button  (registers a new account)

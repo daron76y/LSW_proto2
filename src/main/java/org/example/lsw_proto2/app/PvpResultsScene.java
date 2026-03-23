@@ -11,7 +11,6 @@ import org.example.lsw_proto2.persistence.UserProfile;
 
 /**
  * Results screen shown after a PvP battle ends.
- *
  * Displays:
  *   - Winner announcement
  *   - Both players' updated W/L records
@@ -21,7 +20,6 @@ public class PvpResultsScene {
     private final VBox root;
 
     public PvpResultsScene(SceneManager sceneManager, UserProfile player1, Party p1Party, UserProfile player2, Party p2Party, Party winningParty) {
-
         boolean p1Won = winningParty.getName().equals(p1Party.getName());
         UserProfile winner = p1Won ? player1 : player2;
         UserProfile loser  = p1Won ? player2 : player1;

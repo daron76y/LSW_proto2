@@ -3,8 +3,8 @@ package org.example.lsw_proto2.persistence;
 import java.util.*;
 
 /**
- * Stub in-memory implementation of UserProfileRepository.
- * All data is lost when the application closes.
+ * In-memory implementation of UserProfileRepository.
+ * all data is lost when the application closes.
  */
 public class InMemoryUserProfileRepo implements UserProfileRepository {
     private final Map<String, UserProfile> store = new HashMap<>();

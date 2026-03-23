@@ -18,30 +18,29 @@ import java.util.List;
 
 /**
  * Battle screen for PvP matches.
- *
- * Mirrors GameScene's layout (console + input field) but runs PvPMatchEngine
+ * Mirrors GameScenes layout (console + input field) but runs PvPMatchEngine
  * instead of PVECampaignEngine. When the battle ends it:
- *   1. Records the win/loss on both user profiles
- *   2. Saves both parties back to their owner's PvP roster
- *   3. Navigates to PvpResultsScene
+ *   1) Records the win/loss on both user profiles
+ *   2)Saves both parties back to their owners PvP roster
+ *   3) Navigates to PvpResultsScene
  */
 public class PvpGameScene {
     private final VBox root;
-    private final GUIInputService  inputService;
+    private final GUIInputService inputService;
     private final GUIOutputService outputService;
 
     private final SceneManager sceneManager;
-    private final UserProfile  player1;
-    private final UserProfile  player2;
-    private final Party        p1Party;
-    private final Party        p2Party;
+    private final UserProfile player1;
+    private final UserProfile player2;
+    private final Party p1Party;
+    private final Party p2Party;
 
     public PvpGameScene(SceneManager sceneManager, UserProfile player1, Party p1Party, UserProfile player2, Party p2Party) {
         this.sceneManager = sceneManager;
-        this.player1  = player1;
-        this.p1Party  = p1Party;
-        this.player2  = player2;
-        this.p2Party  = p2Party;
+        this.player1 = player1;
+        this.p1Party = p1Party;
+        this.player2 = player2;
+        this.p2Party = p2Party;
 
         // -----------------------------------------------------------------------
         // |                              Top bar                                |
@@ -141,11 +140,9 @@ public class PvpGameScene {
             sceneManager.getUserRepo().saveUser(player2);
 
             Platform.runLater(() -> {
-                PvpResultsScene results = new PvpResultsScene(
-                        sceneManager, player1, p1Party, player2, p2Party, winner);
+                PvpResultsScene results = new PvpResultsScene(sceneManager, player1, p1Party, player2, p2Party, winner);
                 javafx.stage.Stage stage = (javafx.stage.Stage) root.getScene().getWindow();
-                stage.setScene(new Scene(results.getRoot(),
-                        root.getScene().getWidth(), root.getScene().getHeight()));
+                stage.setScene(new Scene(results.getRoot(), root.getScene().getWidth(), root.getScene().getHeight()));
             });
         }, "pvp-battle-thread");
         battleThread.setDaemon(true);
@@ -153,8 +150,8 @@ public class PvpGameScene {
     }
 
     /**
-     * Replaces the party in the user's PvP roster with the (now-revived) post-battle version.
-     * If the party is no longer in the roster (shouldn't happen), it is appended.
+     * Replaces the party in the users PvP roster with the (now revived) post-battle version.
+     * If the party is no longer in the roster, it is appended
      */
     private void savePartyBack(UserProfile user, Party party) {
         List<org.example.lsw_proto2.core.Party> roster = user.getPvpParties();
@@ -164,7 +161,7 @@ public class PvpGameScene {
                 return;
             }
         }
-        // Fallback: party not found in roster - append if space allows
+        //fallback: party not found in roster, so append if space allows
         if (roster.size() < UserProfile.MAX_PVP_PARTIES) user.addPvpParty(party);
     }
 
