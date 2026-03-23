@@ -7,6 +7,8 @@ import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import org.example.lsw_proto2.core.HeroClass;
+import org.example.lsw_proto2.core.Unit;
+import org.example.lsw_proto2.core.UnitFactory;
 import org.example.lsw_proto2.core.UnitFactoryCSV;
 
 import java.util.List;
@@ -229,8 +231,8 @@ public class NewCampaignScene {
     private String generateHeroName() {
         try {
             // Reuse the CSV factory's names via a temporary factory instance
-            var factory = new UnitFactoryCSV();
-            var recruits = factory.generateHeroRecruits(1);
+            UnitFactory factory = new UnitFactoryCSV();
+            List<Unit> recruits = factory.generateHeroRecruits(1);
             return recruits.getFirst().getName();
         } catch (Exception e) {
             // Fallback in case the resource file is unavailable during development

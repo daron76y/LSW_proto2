@@ -11,6 +11,7 @@ import javafx.scene.text.Font;
 import org.example.lsw_proto2.core.Party;
 import org.example.lsw_proto2.io.GUIInputService;
 import org.example.lsw_proto2.io.GUIOutputService;
+import org.example.lsw_proto2.pve.PVECampaign;
 import org.example.lsw_proto2.pve.PVECampaignEngine;
 
 import java.util.function.Consumer;
@@ -155,7 +156,7 @@ public class GameScene {
      */
     public void startGame() {
         Thread gameThread = new Thread(() -> {
-            PVECampaignEngine engine = new PVECampaignEngine(party, inputService, outputService, startRoom);
+            PVECampaign engine = new PVECampaignEngine(party, inputService, outputService, startRoom);
 
             //room changed callback (allows the game logic to update the gui room counter)
             engine.setOnRoomChanged(room -> Platform.runLater(() -> {

@@ -76,7 +76,8 @@ public class SceneManager {
     public void startNewCampaign(String heroName, HeroClass heroClass, String partyName) {
         Party party = new Party(partyName);
         party.setGold(200);
-        party.addUnit(new Unit(heroName, heroClass));
+        Unit startingHero = new Unit(heroName, heroClass);
+        party.addUnit(startingHero);
 
         // Save the party to the user profile so it shows up in the menu later
         currentUser.saveParty(party);

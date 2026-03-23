@@ -6,7 +6,7 @@ import org.example.lsw_proto2.core.OutputService;
 import org.example.lsw_proto2.core.Party;
 import org.example.lsw_proto2.core.Unit;
 
-public class PvPMatchEngine {
+public class PvPMatchEngine implements PvPMatch {
     private final Party player1Party;
     private final Party player2party;
     private final InputService input;
@@ -19,6 +19,7 @@ public class PvPMatchEngine {
         this.output = output;
     }
 
+    @Override
     public Party startMatch() {
         BattleEngine battle = new BattleEngine(player1Party, player2party, input, input, output);
         Party winner = battle.runBattle();

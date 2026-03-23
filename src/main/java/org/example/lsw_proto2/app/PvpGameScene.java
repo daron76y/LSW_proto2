@@ -12,6 +12,7 @@ import org.example.lsw_proto2.core.Party;
 import org.example.lsw_proto2.io.GUIInputService;
 import org.example.lsw_proto2.io.GUIOutputService;
 import org.example.lsw_proto2.persistence.UserProfile;
+import org.example.lsw_proto2.pvp.PvPMatch;
 import org.example.lsw_proto2.pvp.PvPMatchEngine;
 
 import java.util.List;
@@ -123,7 +124,7 @@ public class PvpGameScene {
      */
     public void startMatch() {
         Thread battleThread = new Thread(() -> {
-            PvPMatchEngine engine = new PvPMatchEngine(p1Party, p2Party, inputService, outputService);
+            PvPMatch engine = new PvPMatchEngine(p1Party, p2Party, inputService, outputService);
             Party winner = engine.startMatch();
 
             //Post-battle: update W/L, save parties, then show results
