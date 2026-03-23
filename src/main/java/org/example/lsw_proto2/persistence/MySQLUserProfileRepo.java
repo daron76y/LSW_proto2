@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.example.lsw_proto2.core.Party;
 
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -159,17 +158,6 @@ public class MySQLUserProfileRepo implements UserProfileRepository {
     }
 
     @Override
-    public void deleteUserByName(String username) {
-        try (PreparedStatement ps = connection.prepareStatement(
-                "DELETE FROM user_profiles WHERE username = ?")) {
-            ps.setString(1, username);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to delete user: " + username, e);
-        }
-    }
-
-    @Override
     public Optional<UserProfile> getUserByName(String username) {
         try (PreparedStatement ps = connection.prepareStatement(
                 "SELECT * FROM user_profiles WHERE username = ?")) {
@@ -181,18 +169,6 @@ public class MySQLUserProfileRepo implements UserProfileRepository {
         } catch (Exception e) {
             throw new RuntimeException("Failed to fetch user: " + username, e);
         }
-    }
-
-    @Override
-    public List<UserProfile> getAllUsers() {
-        List<UserProfile> result = new ArrayList<>();
-        try (Statement st = connection.createStatement();
-             ResultSet rs = st.executeQuery("SELECT * FROM user_profiles")) {
-            while (rs.next()) result.add(buildUserProfile(rs));
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to fetch all users", e);
-        }
-        return result;
     }
 
     @Override
