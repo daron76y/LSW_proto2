@@ -14,11 +14,10 @@ import org.example.lsw_proto2.persistence.UserProfileRepository;
 import java.util.Map;
 
 /**
- * Central controller that owns the Stage and drives all scene transitions.
- *
+ * Central controller that owns the Stage and performs all scene transitions.
  * Switching between repos ==================================================
- * Change USE_MYSQL to false to use the in-memory repo (no database required).
- * Change USE_MYSQL to true to persist data to a local MySQL server.
+ * Change USE_MYSQL to false to use the in-memory repo (No SQL installation needed!).
+ * Change USE_MYSQL to true to store data to a local MySQL server.
  */
 public class SceneManager {
     private static final int WIDTH  = 900;
