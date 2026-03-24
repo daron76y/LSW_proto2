@@ -155,7 +155,7 @@ public class PvpGameScene {
      * If the party is no longer in the roster, it is appended
      */
     private void savePartyBack(UserProfile user, Party party) {
-        List<org.example.lsw_proto2.core.Party> roster = user.getPvpParties();
+        List<Party> roster = user.getPvpParties();
         for (int i = 0; i < roster.size(); i++) {
             if (roster.get(i).getName().equals(party.getName())) {
                 user.replacePvpParty(i, party);
