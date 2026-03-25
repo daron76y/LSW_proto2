@@ -19,7 +19,7 @@ import java.util.List;
 
 /**
  * Battle screen for PvP matches.
- * Mirrors GameScenes layout (console + input field) but runs PvPMatchEngine
+ * Looks just like GameScenes layout (console + input field) but runs PvPMatchEngine
  * instead of PVECampaignEngine. When the battle ends it:
  *   1) Records the win/loss on both user profiles
  *   2)Saves both parties back to their owners PvP roster

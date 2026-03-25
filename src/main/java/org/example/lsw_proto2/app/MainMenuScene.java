@@ -11,11 +11,11 @@ import org.example.lsw_proto2.persistence.UserProfile;
 import java.util.List;
 
 /**
- * Main menu shown after login.
+ * The main menu shown after login.
  * Layout:
- *   TOP    - "Welcome, username!" + Log Out button
+ *   TOP    - "Welcome, username!" + Logout button
  *   LEFT   - Saved Campaigns list (each row has a "Resume" button) + "New Campaign" button at the bottom
- *   RIGHT  - PvP section
+ *   RIGHT  - PVP section
  */
 public class MainMenuScene {
     private final VBox root;
