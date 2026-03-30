@@ -62,6 +62,7 @@ public class BattleEngine implements Battle {
             while (true) {
                 try {
                     output.showMessage("Actions:\n[attack <target>]\n[defend]\n[wait]\n[cast \"<ability name>\" |target|]");
+                    output.showMessage("- abilities: " + currentUnit.getAbilities().toString());
                     BattleCommand command = input.chooseBattleCommand(currentUnit, allyParty, enemyParty);
                     command.execute(this);
                     break;

@@ -61,8 +61,8 @@ public class UnitFactoryCSV implements UnitFactory {
             //create the enemy unit, with stats related to its level
             Unit enemy = new Unit(
                 name,
-                3 * level,
-                level,
+                3 + level,
+                1+ level,
                 10 + level,
                 0,
                 HeroClass.WARRIOR
