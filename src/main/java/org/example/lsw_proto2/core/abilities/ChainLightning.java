@@ -32,7 +32,7 @@ public class ChainLightning extends Ability {
         output.showMessage(String.format("- inflicts %d damage to %s", inflictedDamage, target.getName()));
 
         //randomly damage all other enemies for a percentage of the previous damage
-        List<Unit> enemies = new ArrayList<>(enemyParty.getUnits()); //do not shuffle original list
+        List<Unit> enemies = new ArrayList<>(enemyParty.getAliveUnits()); //do not shuffle original list
         Collections.shuffle(enemies);
         for (Unit enemy : enemies) {
             if (enemy.equals(target)) continue;

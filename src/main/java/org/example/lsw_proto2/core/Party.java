@@ -101,7 +101,8 @@ public class Party {
         StringBuilder sb = new StringBuilder();
         sb.append("Party Name: ").append(name).append("\n");
         units.forEach(unit -> {
-            sb.append(unit.toString()).append("\n");
+            if (unit.isAlive()) sb.append(unit.toString()).append("\n");
+            else sb.append("[DEAD]\n");
         });
         return sb.toString();
     }
