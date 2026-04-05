@@ -1,0 +1,13 @@
+package org.example.lsw_proto2.core;
+
+import org.example.lsw_proto2.pve.PVECommand;
+
+import java.util.List;
+
+public interface CampaignInputService {
+    PVECommand choosePVECommand();
+    String chooseInnAction();
+    Items chooseItem();
+    Unit chooseUnit(List<Unit> units);
+    HeroClass chooseHeroClass(List<HeroClass> heroClasses);
+}
