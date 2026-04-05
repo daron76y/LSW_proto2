@@ -11,11 +11,11 @@ public class BattleEngine implements Battle {
     private final Queue<Unit> turnQueue;
     private final Party partyA;
     private final Party partyB;
-    private final InputService partyAInput;
-    private final InputService partyBInput;
+    private final BattleInputService partyAInput;
+    private final BattleInputService partyBInput;
     private final OutputService output;
 
-    public BattleEngine(Party partyA, Party partyB, InputService partyAInput, InputService partyBInput, OutputService output) {
+    public BattleEngine(Party partyA, Party partyB, BattleInputService partyAInput, BattleInputService partyBInput, OutputService output) {
         this.partyA = partyA;
         this.partyB = partyB;
         this.partyAInput = partyAInput;
@@ -56,7 +56,7 @@ public class BattleEngine implements Battle {
             Party enemyParty = (allyParty ==  partyB) ? partyA : partyB;
 
             //get the input service for this unit
-            InputService input = (allyParty == partyA) ? partyAInput : partyBInput;
+            BattleInputService input = (allyParty == partyA) ? partyAInput : partyBInput;
 
             //listen for battle commands. Retry if they failed.
             while (true) {
@@ -132,6 +132,6 @@ public class BattleEngine implements Battle {
         if (ability.requiresTarget() && target.isDead()) throw new IllegalArgumentException("Target is dead!");
 
         caster.setMana(caster.getMana() - ability.getManaCost());
-        ability.execute(caster, target, allyParty, enemyParty, output);
+        ability.execute(new BattleContext(caster, target, allyParty, enemyParty, output));
     }
 }

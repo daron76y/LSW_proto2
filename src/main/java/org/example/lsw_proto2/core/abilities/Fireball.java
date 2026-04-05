@@ -1,7 +1,6 @@
 package org.example.lsw_proto2.core.abilities;
 
-import org.example.lsw_proto2.core.OutputService;
-import org.example.lsw_proto2.core.Party;
+import org.example.lsw_proto2.core.BattleContext;
 import org.example.lsw_proto2.core.Unit;
 
 public class Fireball extends Ability {
@@ -21,26 +20,26 @@ public class Fireball extends Ability {
     public boolean requiresTarget() {return true;}
 
     @Override
-    public void perform(Unit caster, Unit target, Party allyParty, Party enemyParty, OutputService output) {
+    public void perform(BattleContext bc) {
         //get the neighboring enemies of the target (fireball is an AOE attack)
-        int beforeIndex = enemyParty.getAliveUnits().indexOf(target) - 1;
-        int afterIndex = enemyParty.getAliveUnits().indexOf(target) + 1;
-        Unit beforeEnemy = (beforeIndex < 0) ? null : enemyParty.getAliveUnits().get(beforeIndex);
-        Unit afterEnemy = (afterIndex >= enemyParty.getNumAliveUnits()) ? null : enemyParty.getAliveUnits().get(afterIndex);
+        int beforeIndex = bc.getEnemyParty().getAliveUnits().indexOf(bc.getTarget()) - 1;
+        int afterIndex = bc.getEnemyParty().getAliveUnits().indexOf(bc.getTarget()) + 1;
+        Unit beforeEnemy = (beforeIndex < 0) ? null : bc.getEnemyParty().getAliveUnits().get(beforeIndex);
+        Unit afterEnemy = (afterIndex >= bc.getEnemyParty().getNumAliveUnits()) ? null : bc.getEnemyParty().getAliveUnits().get(afterIndex);
 
         //damage target and neighbors, if they exist
-        int damage = caster.getAttack() * damageMultiplier;
-        int inflictedDamage = target.applyDamage(damage);
-        output.showMessage(String.format("- inflicts %d damage to %s", inflictedDamage, target.getName()));
+        int damage = bc.getCaster().getAttack() * damageMultiplier;
+        int inflictedDamage = bc.getTarget().applyDamage(damage);
+        bc.getOutput().showMessage(String.format("- inflicts %d damage to %s", inflictedDamage, bc.getTarget().getName()));
 
         if (beforeEnemy != null) {
             inflictedDamage = beforeEnemy.applyDamage(damage);
-            output.showMessage(String.format("- inflicts %d damage to %s", inflictedDamage, beforeEnemy.getName()));
+            bc.getOutput().showMessage(String.format("- inflicts %d damage to %s", inflictedDamage, beforeEnemy.getName()));
         }
 
         if (afterEnemy != null) {
             inflictedDamage = afterEnemy.applyDamage(damage);
-            output.showMessage(String.format("- inflicts %d damage to %s", inflictedDamage, afterEnemy.getName()));
+            bc.getOutput().showMessage(String.format("- inflicts %d damage to %s", inflictedDamage, afterEnemy.getName()));
         }
     }
 }

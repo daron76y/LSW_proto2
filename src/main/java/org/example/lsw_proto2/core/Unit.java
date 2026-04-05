@@ -8,25 +8,20 @@ import org.example.lsw_proto2.core.effects.Effect;
 import java.util.*;
 
 @JsonAutoDetect(
-    fieldVisibility    = JsonAutoDetect.Visibility.ANY,
-    getterVisibility   = JsonAutoDetect.Visibility.NONE,
-    isGetterVisibility = JsonAutoDetect.Visibility.NONE
+        fieldVisibility    = JsonAutoDetect.Visibility.ANY,
+        getterVisibility   = JsonAutoDetect.Visibility.NONE,
+        isGetterVisibility = JsonAutoDetect.Visibility.NONE
 )
-@JsonPropertyOrder({ //ensures health and mana get set before the maxes to avoid any strange int default to 0 errors. TODO: May be redundant.
-        "name", "mainClass", "classLevels", "experience",
-        "attack", "defense",
-        "maxHealth", "maxMana", "health", "mana",
-        "abilities", "effects"
+@JsonPropertyOrder({
+        "name", "progression", "attack", "defense", "maxHealth", "maxMana", "health", "mana", "abilities", "effects"
 })
 public class Unit {
     private final String name;
 
-    private final EnumMap<HeroClass, Integer> classLevels;
-    private HeroClass mainClass;
+    private final ClassProgression progression;
 
     private final List<Effect> effects;
     private final List<Ability> abilities;
-    private int experience;
 
     private int maxHealth;
     private int maxMana;
@@ -38,7 +33,7 @@ public class Unit {
     /** No-arg constructor for Jackson deserialization. */
     private Unit() {
         this.name = null;
-        this.classLevels = new EnumMap<>(HeroClass.class);
+        this.progression = new ClassProgression();
         this.effects = new ArrayList<>();
         this.abilities = new ArrayList<>();
     }
@@ -47,17 +42,10 @@ public class Unit {
     public Unit(String name, int atk, int def, int maxHp, int maxMp, HeroClass startingClass) {
         this.name = name;
 
-        classLevels = new EnumMap<>(HeroClass.class);
-        classLevels.put(HeroClass.ORDER, 0);
-        classLevels.put(HeroClass.CHAOS, 0);
-        classLevels.put(HeroClass.WARRIOR, 0);
-        classLevels.put(HeroClass.MAGE, 0);
-        mainClass = startingClass;
-        classLevels.put(mainClass, 1); //init starting class to level 1
+        progression = new ClassProgression(startingClass);
 
         effects = new ArrayList<>(startingClass.getEffects());
         abilities = new ArrayList<>(startingClass.getAbilities());
-        experience = 0;
 
         this.attack = atk;
         this.defense = def;
@@ -108,11 +96,7 @@ public class Unit {
     public void removeEffect(Effect effect) {this.effects.remove(effect);}
 
     public void clearDebuffEffects() {
-        for (Effect effect : effects) {
-            if (!mainClass.getEffects().contains(effect)) {
-                removeEffect(effect);
-            }
-        }
+        effects.removeIf(effect -> !getMainClass().getEffects().contains(effect));
     }
 
     // -----------------------------------------------------------------------
@@ -152,18 +136,11 @@ public class Unit {
     // -----------------------------------------------------------------------
     // |                               Classes                               |
     // -----------------------------------------------------------------------
-    public HeroClass getMainClass() {return mainClass;}
-    public EnumMap<HeroClass, Integer> getClassLevels() {return classLevels;}
+    public HeroClass getMainClass() {return progression.getMainClass();}
+    public EnumMap<HeroClass, Integer> getClassLevels() {return progression.getClassLevels();}
 
     public void changeMainClass(HeroClass heroClass) {
-        if (mainClass == heroClass) throw new IllegalArgumentException("This unit is already a " + heroClass);
-        if (mainClass.isHybrid()) throw new IllegalArgumentException("This unit is a permanent hybrid!");
-        if (mainClass.isSpecialization() && !heroClass.isHybrid()) throw new IllegalArgumentException("Specialized units may only upgrade to hybrids!");
-        if (heroClass.isSpecialization() && classLevels.get(heroClass.getParentA()) < 5) throw new IllegalArgumentException("This unit does not meet the minimum level to specialize into " + heroClass);
-        if (heroClass.isHybrid() && (classLevels.get(heroClass.getParentA()) < 5 || classLevels.get(heroClass.getParentB()) < 5)) throw new  IllegalArgumentException("This unit does not meet he minimum levels to hybridize into " + heroClass);
-
-        //unit may change class
-        mainClass = heroClass;
+        progression.changeMainClass(heroClass);
         abilities.clear();
         abilities.addAll(heroClass.getAbilities());
         effects.clear();
@@ -171,13 +148,9 @@ public class Unit {
     }
 
     public void levelUpClass(HeroClass heroClass) {
-        if (!classLevels.containsKey(heroClass)) throw new IllegalArgumentException("This unit does not have this class");
-        if (getLevel() >= 20) throw new IllegalArgumentException("This unit is at the max level: " + getLevel());
-        if (experience < expNeededForLvl(classLevels.get(heroClass) + 1)) throw new IllegalArgumentException("Not enough experience!");
+        progression.levelUpClass(heroClass); //validation + exp deduction
 
-        //level up class and get stat bonuses
-        experience -= expNeededForLvl(classLevels.get(heroClass) + 1);
-        classLevels.put(heroClass, classLevels.get(heroClass) + 1);
+        //get stat bonuses
         attack += 1 + heroClass.getAttackPerLevel();
         defense += 1 + heroClass.getDefensePerLevel();
         health = maxHealth += 5 + heroClass.getHealthPerLevel();
@@ -185,69 +158,35 @@ public class Unit {
     }
 
     public HeroClass handleClassTransformation() {
-        List<HeroClass> lvl5Classes = classLevels.entrySet().stream()
-                .filter(entry -> entry.getValue() >= 5)
-                .map(Map.Entry::getKey)
-                .toList();
+        HeroClass newClass = progression.handleClassTransformation();
 
-        //transform into specialization if one class is lvl 5 and you're not already a specialization
-        if (mainClass.isBase() && lvl5Classes.size() == 1) {
-            HeroClass hc = lvl5Classes.getFirst();
-            changeMainClass(HeroClass.comboOf(hc, hc));
-            return mainClass;
+        //sync abilities and effects with the new class
+        if (newClass != null) {
+            abilities.clear();
+            abilities.addAll(newClass.getAbilities());
+            effects.clear();
+            effects.addAll(newClass.getEffects());
         }
 
-        //if two classes are lvl 5, transform into a hybrid of the two as long as you are currently a specialization
-        else if (mainClass.isSpecialization() && lvl5Classes.size() == 2) {
-            HeroClass parentA = lvl5Classes.get(0);
-            HeroClass parentB = lvl5Classes.get(1);
-            changeMainClass(HeroClass.comboOf(parentA, parentB));
-            return mainClass;
-        }
-
-        //if above two don't work, then do nothing
-        return null;
+        return newClass;
     }
 
-    public List<HeroClass> getClassesAvailableForLevelUp() {
-        List<HeroClass> classes = new ArrayList<>();
-        for (HeroClass heroClass : classLevels.keySet())
-            if (canLevelUpClass(heroClass)) classes.add(heroClass);
-        return classes;
-    }
-
-
+    public List<HeroClass> getClassesAvailableForLevelUp() {return progression.getClassesAvailableForLevelUp();}
 
     // -----------------------------------------------------------------------
     // |                           Levels & Exp                              |
     // -----------------------------------------------------------------------
-    public int getLevel() {
-        return classLevels.values().stream()
-                .mapToInt(Integer::intValue)
-                .sum();
-    }
+    public int getLevel() {return progression.getLevel();}
 
-    public boolean canLevelUpClass(HeroClass heroClass) {
-        if (!classLevels.containsKey(heroClass)) return false;
-        if (getLevel() >= 20) return false;
-        return experience >= expNeededForLvl(classLevels.get(heroClass) + 1);
-    }
+    public boolean canLevelUpClass(HeroClass heroClass) {return progression.canLevelUpClass(heroClass);}
 
-    public boolean canLevelUpAny() {
-        for (HeroClass hc : classLevels.keySet()) {
-            if (canLevelUpClass(hc)) return true;
-        }
-        return false;
-    }
+    public boolean canLevelUpAny() {return progression.canLevelUpAny();}
 
-    public int getExperience() {return experience;}
-    public void addExperience(int experience) {this.experience += experience;}
-    public void loseExperience(int experience) {this.experience -= Math.min(experience, this.experience);}
+    public int getExperience() {return progression.getExperience();}
+    public void addExperience(int experience) {progression.addExperience(experience);}
+    public void loseExperience(int experience) {progression.loseExperience(experience);}
 
-    public int expNeededForLvl(int lvl) {
-        if (lvl <= 0) return 0;
-        return expNeededForLvl(lvl - 1) + 500 + 75 * lvl + 20 * lvl * lvl;
-    }
+    public int expNeededForLvl(int lvl) {return progression.expNeededForLvl(lvl);}
 
 
     // -----------------------------------------------------------------------
@@ -255,6 +194,6 @@ public class Unit {
     // -----------------------------------------------------------------------
     @Override
     public String toString() {
-        return String.format("[%s]\tatk: %d|def: %d|hp: %d|mp: %d|lvl: %d|xp: %d", name, attack,  defense, health, mana, getLevel(), experience);
+        return String.format("[%s]\tatk: %d|def: %d|hp: %d|mp: %d|lvl: %d|xp: %d", name, attack, defense, health, mana, getLevel(), getExperience());
     }
 }

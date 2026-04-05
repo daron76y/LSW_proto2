@@ -1,7 +1,6 @@
 package org.example.lsw_proto2.core.abilities;
 
-import org.example.lsw_proto2.core.OutputService;
-import org.example.lsw_proto2.core.Party;
+import org.example.lsw_proto2.core.BattleContext;
 import org.example.lsw_proto2.core.Unit;
 
 public class Replenish extends Ability {
@@ -21,13 +20,13 @@ public class Replenish extends Ability {
     public boolean requiresTarget() {return false;}
 
     @Override
-    public void perform(Unit caster, Unit target, Party allyParty, Party enemyParty, OutputService output) {
-        caster.setMana(caster.getMana() + 60 * effectMultiplier);
-        output.showMessage(String.format("- %s gets 60 mana!", caster.getName()));
-        for (Unit ally : allyParty.getAliveUnits()) {
-            if (ally.equals(caster)) continue;
+    public void perform(BattleContext bc) {
+        bc.getCaster().setMana(bc.getCaster().getMana() + 60 * effectMultiplier);
+        bc.getOutput().showMessage(String.format("- %s gets 60 mana!", bc.getCaster().getName()));
+        for (Unit ally : bc.getAllyParty().getAliveUnits()) {
+            if (ally.equals(bc.getCaster())) continue;
             ally.setMana(ally.getMana() + 30 * effectMultiplier);
-            output.showMessage(String.format("- %s gets 30 mana!", ally.getName()));
+            bc.getOutput().showMessage(String.format("- %s gets 30 mana!", ally.getName()));
         }
     }
 }

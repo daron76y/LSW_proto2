@@ -3,6 +3,7 @@ package org.example.lsw_proto2.core.abilities;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.example.lsw_proto2.core.BattleContext;
 import org.example.lsw_proto2.core.OutputService;
 import org.example.lsw_proto2.core.Party;
 import org.example.lsw_proto2.core.Unit;
@@ -30,13 +31,13 @@ public abstract class Ability {
     public abstract boolean requiresTarget();
 
     //template method because all abilities share the same basic cast output
-    public void execute(Unit caster, Unit target, Party allyParty, Party enemyParty, OutputService output) {
-        output.showMessage(String.format("%s casts %s!", caster.getName(), getName()));
-        perform(caster, target, allyParty, enemyParty, output);
+    public void execute(BattleContext bc) {
+        bc.getOutput().showMessage(String.format("%s casts %s!", bc.getCaster().getName(), getName()));
+        perform(bc);
     }
 
     //unique ability implementations
-    public abstract void perform(Unit caster, Unit target, Party allyParty, Party enemyParty, OutputService output);
+    public abstract void perform(BattleContext bc);
 
     //to string
     @Override

@@ -2,6 +2,7 @@ package org.example.lsw_proto2.io;
 
 import org.example.lsw_proto2.battle.*;
 import org.example.lsw_proto2.core.*;
+import org.example.lsw_proto2.core.abilities.Ability;
 import org.example.lsw_proto2.pve.*;
 
 import java.util.List;
@@ -40,34 +41,10 @@ public class GUIInputService implements InputService {
     @Override
     public BattleCommand chooseBattleCommand(Unit unit, Party allyParty, Party enemyParty) {
         String input = waitForLine();
-        List<String> tokens = parseTokens(input);
+        List<String> tokens = parseInput(input);
 
         try {
-            switch (tokens.get(0).toLowerCase()) {
-                case "attack": {
-                    if (tokens.size() < 2) throw new IllegalArgumentException("Usage: attack <target>");
-                    Unit target = enemyParty.getUnitByName(tokens.get(1));
-                    return new AttackCommand(unit, target);
-                }
-                case "defend":
-                    return new DefendCommand(unit);
-                case "wait":
-                    return new WaitCommand(unit);
-                case "cast": {
-                    if (tokens.size() < 2) throw new IllegalArgumentException("Usage: cast \"<ability>\" [target]");
-                    String abilityName = tokens.get(1);
-                    var ability = unit.getAbilityByName(abilityName);
-                    if (ability == null) throw new IllegalArgumentException("No such ability: " + abilityName);
-                    Unit target = null;
-                    if (ability.requiresTarget()) {
-                        if (tokens.size() < 3) throw new IllegalArgumentException("This ability requires a target.");
-                        target = enemyParty.getUnitByName(tokens.get(2));
-                    }
-                    return new CastCommand(unit, target, allyParty, enemyParty, ability);
-                }
-                default:
-                    throw new IllegalArgumentException("Unknown action: " + tokens.get(0));
-            }
+            return switchBattleCommand(unit, allyParty, enemyParty, tokens);
         } catch (Exception e) {
             //print the error and loop - engine stays blocked waiting for future valid input
             queue.add(""); //won't be used cuz we loop back to waitForLine ourselves
@@ -79,14 +56,11 @@ public class GUIInputService implements InputService {
     @Override
     public PVECommand choosePVECommand() {
         String input = waitForLine();
-        return switch (input.toLowerCase()) {
-            case "next"       -> new NextRoomCommand();
-            case "use item"   -> new UseItemCommand();
-            case "view party" -> new ViewPartyCommand();
-            case "level up"   -> new LevelUpCommand();
-            case "quit"       -> new QuitCommand();
-            default           -> throw new RuntimeException("Unknown command: " + input + "\nValid: next | use item | view party | quit");
-        };
+        try {
+            return PVECommandRegistry.getCommand(input);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Unknown command: " + input + "\nValid: next | use item | view party | quit");
+        }
     }
 
     @Override
@@ -119,18 +93,5 @@ public class GUIInputService implements InputService {
             if (input.equalsIgnoreCase(heroClass.toString())) return heroClass;
         }
         throw new RuntimeException("Invalid hero class: " + input);
-    }
-
-    // -----------------------------------------------------------------------
-    // Token parser - handles quoted strings with spaces, i.e, cast "Chain Lightning" Goblin
-    // -----------------------------------------------------------------------
-    private List<String> parseTokens(String input) {
-        List<String> tokens = new java.util.ArrayList<>();
-        var matcher = java.util.regex.Pattern
-                .compile("\"([^\"]*)\"|(\\S+)")
-                .matcher(input);
-        while (matcher.find())
-            tokens.add(matcher.group(1) != null ? matcher.group(1) : matcher.group(2));
-        return tokens;
     }
 }

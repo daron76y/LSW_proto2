@@ -83,39 +83,47 @@ public class PVECampaignEngine implements PVECampaign {
         Party winner = battle.runBattle();
 
         if (winner == playerParty) { //player is victorious
-            output.showMessage("Victory!");
-            int totalExperienceEarned = 0;
-            int totalGoldEarned = 0;
-
-            // get exp and gold per enemy unit defeated
-            for (Unit enemy : enemyParty.getUnits()) {
-                totalExperienceEarned += 50 * enemy.getLevel();
-                totalGoldEarned += 75 * enemy.getLevel();
-            }
-
-            // divide exp amongst all alive members
-            int numStandingUnits = playerParty.getAliveUnits().size();
-            for (Unit standingUnit : playerParty.getAliveUnits()) {
-                standingUnit.addExperience(totalExperienceEarned / numStandingUnits);
-            }
-
-            // gain gold for the party
-            playerParty.setGold(playerParty.getGold() + totalGoldEarned);
-            output.showMessage("+ " + totalGoldEarned + " Gold Earned!");
-            output.showMessage("+ " +  totalExperienceEarned + " Total Experience Earned!");
+            victoryRewards(enemyParty);
         }
         else { //player died
-            output.showMessage("Defeat!");
-
-            //battle penalties
-            playerParty.setGold(Math.max(0, playerParty.getGold() - (int)(playerParty.getGold() * 0.10))); //-10% gold
-            for (Unit unit : playerParty.getAliveUnits())
-                unit.loseExperience((int)(unit.getExperience() * 0.30)); //-30% experience per unit
+            lossPenalties();
 
             output.showMessage("Returning to previous inn!");
             currentRoom = lastInnCheckpoint;
             enterInn();
         }
+    }
+
+    private void lossPenalties() {
+        output.showMessage("Defeat!");
+
+        //battle penalties
+        playerParty.setGold(Math.max(0, playerParty.getGold() - (int)(playerParty.getGold() * 0.10))); //-10% gold
+        for (Unit unit : playerParty.getAliveUnits())
+            unit.loseExperience((int)(unit.getExperience() * 0.30)); //-30% experience per unit
+    }
+
+    private void victoryRewards(Party enemyParty) {
+        output.showMessage("Victory!");
+        int totalExperienceEarned = 0;
+        int totalGoldEarned = 0;
+
+        // get exp and gold per enemy unit defeated
+        for (Unit enemy : enemyParty.getUnits()) {
+            totalExperienceEarned += 50 * enemy.getLevel();
+            totalGoldEarned += 75 * enemy.getLevel();
+        }
+
+        // divide exp amongst all alive members
+        int numStandingUnits = playerParty.getAliveUnits().size();
+        for (Unit standingUnit : playerParty.getAliveUnits()) {
+            standingUnit.addExperience(totalExperienceEarned / numStandingUnits);
+        }
+
+        // gain gold for the party
+        playerParty.setGold(playerParty.getGold() + totalGoldEarned);
+        output.showMessage("+ " + totalGoldEarned + " Gold Earned!");
+        output.showMessage("+ " +  totalExperienceEarned + " Total Experience Earned!");
     }
 
     private void enterInn() {
@@ -135,46 +143,10 @@ public class PVECampaignEngine implements PVECampaign {
                 String choice = input.chooseInnAction();
                 switch (choice.toLowerCase().trim()) {
                     case "buy":
-                        output.showItemShop();
-                        Items item = input.chooseItem();
-                        if (playerParty.getGold() >= item.getCost()) {
-                            playerParty.setGold(playerParty.getGold() - item.getCost());
-                            playerParty.addItem(item);
-                            output.showMessage("Purchased " + item);
-                        }
-                        else {
-                            output.showMessage("Not enough gold for a " + item);
-                        }
+                        buy();
                         break;
                     case "recruit":
-                        if (playerParty.getUnits().size() >= 5) {
-                            output.showMessage("Party is full. Cannot recruit more heroes.");
-                            continue;
-                        }
-
-                        //generate 1-5 random hero recruits
-                        int numRecruits = new Random().nextInt(5) + 1;
-                        List<Unit> recruits = unitFactory.generateHeroRecruits(numRecruits);
-                        output.showMessage("Available Recruits:");
-                        for (int i=0; i<recruits.size(); i++) {
-                            Unit recruit = recruits.get(i);
-                            int cost = recruit.getLevel() == 1 ? 0 : recruit.getLevel() * 200;
-                            output.showMessage((i+1) + ". " + recruit.getName() + " - lvl: " + recruit.getLevel() + " - cost: " + cost);
-                        }
-
-                        //listen for player selection
-                        output.showMessage("Your gold: " + playerParty.getGold());
-                        output.showMessage("Who will you recruit?");
-                        Unit selection = input.chooseUnit(recruits);
-                        int cost = selection.getLevel() == 1 ? 0 : selection.getLevel() * 200;
-                        if (playerParty.getGold() >= cost) {
-                            playerParty.setGold(playerParty.getGold() - cost);
-                            playerParty.addUnit(selection);
-                            output.showMessage("Recruited " + selection.getName());
-                        }
-                        else {
-                            output.showMessage("Not enough gold for " + selection.getName());
-                        }
+                        if (recruit()) continue;
                         break;
                     case "view party":
                         viewParty();
@@ -186,6 +158,51 @@ public class PVECampaignEngine implements PVECampaign {
             } catch (Exception e) {
                 output.showMessage("Inn Error: " + e.getMessage());
             }
+        }
+    }
+
+    private boolean recruit() {
+        if (playerParty.getUnits().size() >= 5) {
+            output.showMessage("Party is full. Cannot recruit more heroes.");
+            return true;
+        }
+
+        //generate 1-5 random hero recruits
+        int numRecruits = new Random().nextInt(5) + 1;
+        List<Unit> recruits = unitFactory.generateHeroRecruits(numRecruits);
+        output.showMessage("Available Recruits:");
+        for (int i=0; i<recruits.size(); i++) {
+            Unit recruit = recruits.get(i);
+            int cost = recruit.getLevel() == 1 ? 0 : recruit.getLevel() * 200;
+            output.showMessage((i+1) + ". " + recruit.getName() + " - lvl: " + recruit.getLevel() + " - cost: " + cost);
+        }
+
+        //listen for player selection
+        output.showMessage("Your gold: " + playerParty.getGold());
+        output.showMessage("Who will you recruit?");
+        Unit selection = input.chooseUnit(recruits);
+        int cost = selection.getLevel() == 1 ? 0 : selection.getLevel() * 200;
+        if (playerParty.getGold() >= cost) {
+            playerParty.setGold(playerParty.getGold() - cost);
+            playerParty.addUnit(selection);
+            output.showMessage("Recruited " + selection.getName());
+        }
+        else {
+            output.showMessage("Not enough gold for " + selection.getName());
+        }
+        return false;
+    }
+
+    private void buy() {
+        output.showItemShop();
+        Items item = input.chooseItem();
+        if (playerParty.getGold() >= item.getCost()) {
+            playerParty.setGold(playerParty.getGold() - item.getCost());
+            playerParty.addItem(item);
+            output.showMessage("Purchased " + item);
+        }
+        else {
+            output.showMessage("Not enough gold for a " + item);
         }
     }
 

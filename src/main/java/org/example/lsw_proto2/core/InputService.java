@@ -1,20 +1,23 @@
 package org.example.lsw_proto2.core;
 
-import org.example.lsw_proto2.battle.BattleCommand;
-import org.example.lsw_proto2.pve.PVECommand;
+import org.example.lsw_proto2.battle.*;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-public interface InputService {
-    BattleCommand chooseBattleCommand(Unit unit, Party allyParty, Party enemyParty);
+public interface InputService extends BattleInputService, CampaignInputService {
 
-    PVECommand choosePVECommand();
+    default List<String> parseInput(String input) {
+        List<String> tokens = new ArrayList<>();
+        Matcher matcher = Pattern.compile("\"([^\"]*)\"|(\\S+)").matcher(input);
 
-    String chooseInnAction();
+        while (matcher.find()) {
+            if (matcher.group(1) != null) tokens.add(matcher.group(1)); //text with quotes
+            else tokens.add(matcher.group(2));
+        }
 
-    Items chooseItem();
-
-    Unit chooseUnit(List<Unit> recruits);
-
-    HeroClass chooseHeroClass(List<HeroClass> heroClasses);
+        return tokens;
+    }
 }

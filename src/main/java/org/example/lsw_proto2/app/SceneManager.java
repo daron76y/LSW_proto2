@@ -32,6 +32,7 @@ public class SceneManager {
 
     private final Stage stage;
     private final UserProfileRepository userRepo;
+    private final AuthService authService;
     private UserProfile currentUser;
 
     public SceneManager(Stage stage) {
@@ -43,6 +44,8 @@ public class SceneManager {
         userRepo = USE_MYSQL
                 ? MySQLUserProfileRepo.connect(MYSQL_USER, MYSQL_PASSWORD)
                 : new InMemoryUserProfileRepo();
+
+        authService = new AuthService(userRepo);
     }
 
     // -----------------------------------------------------------------------
@@ -164,28 +167,24 @@ public class SceneManager {
      * Attempt to log in. Returns an error message on failure, or null on success.
      */
     public String login(String username, String password) {
-        if (username.isBlank()) return "Username cannot be empty.";
-        if (password.isBlank()) return "Password cannot be empty.";
-
-        var profileOpt = userRepo.getUserByName(username);
-        if (profileOpt.isEmpty()) return "No account found for \"" + username + "\".";
-        if (!profileOpt.get().getPassword().equals(password)) return "Incorrect password.";
-
-        currentUser = profileOpt.get();
-        return null; // success
+        try {
+            currentUser = authService.login(username, password);
+            return null; // success
+        } catch (IllegalArgumentException e) {
+            return e.getMessage();
+        }
     }
 
     /**
      * Attempt to create a new account. Returns an error message on failure, or null on success.
      */
     public String createAccount(String username, String password) {
-        if (username.isBlank()) return "Username cannot be empty.";
-        if (password.length() < 4) return "Password must be at least 4 characters.";
-        if (userRepo.exists(username)) return "Username \"" + username + "\" is already taken.";
-
-        currentUser = new UserProfile(username, password);
-        userRepo.saveUser(currentUser);
-        return null; // success
+        try {
+            currentUser = authService.createAccount(username, password);
+            return null; // success
+        } catch (IllegalArgumentException e) {
+            return e.getMessage();
+        }
     }
 
     public UserProfile getCurrentUser() { return currentUser; }

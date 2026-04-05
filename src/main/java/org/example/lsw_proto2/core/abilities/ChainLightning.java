@@ -1,7 +1,6 @@
 package org.example.lsw_proto2.core.abilities;
 
-import org.example.lsw_proto2.core.OutputService;
-import org.example.lsw_proto2.core.Party;
+import org.example.lsw_proto2.core.BattleContext;
 import org.example.lsw_proto2.core.Unit;
 
 import java.util.ArrayList;
@@ -25,20 +24,20 @@ public class ChainLightning extends Ability {
     public boolean requiresTarget() {return true;}
 
     @Override
-    public void perform(Unit caster, Unit target, Party allyParty, Party enemyParty, OutputService output) {
+    public void perform(BattleContext bc) {
         //damage initial target
-        int damage = caster.getAttack();
-        int inflictedDamage = target.applyDamage(damage);
-        output.showMessage(String.format("- inflicts %d damage to %s", inflictedDamage, target.getName()));
+        int damage = bc.getCaster().getAttack();
+        int inflictedDamage = bc.getTarget().applyDamage(damage);
+        bc.getOutput().showMessage(String.format("- inflicts %d damage to %s", inflictedDamage, bc.getTarget().getName()));
 
         //randomly damage all other enemies for a percentage of the previous damage
-        List<Unit> enemies = new ArrayList<>(enemyParty.getAliveUnits()); //do not shuffle original list
+        List<Unit> enemies = new ArrayList<>(bc.getEnemyParty().getUnits()); //do not shuffle original list
         Collections.shuffle(enemies);
         for (Unit enemy : enemies) {
-            if (enemy.equals(target)) continue;
+            if (enemy.equals(bc.getTarget())) continue;
             damage = (int)(damage * subsequentDamageMultiplier);
             inflictedDamage = enemy.applyDamage(damage);
-            output.showMessage(String.format("- inflicts %d damage to %s", inflictedDamage, enemy.getName()));
+            bc.getOutput().showMessage(String.format("- inflicts %d damage to %s", inflictedDamage, enemy.getName()));
         }
     }
 }

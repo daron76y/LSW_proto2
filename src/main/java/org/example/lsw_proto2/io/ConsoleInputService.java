@@ -18,18 +18,6 @@ public class ConsoleInputService implements InputService {
         this.scan = new Scanner(System.in);
     }
 
-    private List<String> parseInput(String input) {
-        List<String> tokens = new ArrayList<>();
-        Matcher matcher = Pattern.compile("\"([^\"]*)\"|(\\S+)").matcher(input);
-
-        while (matcher.find()) {
-            if (matcher.group(1) != null) tokens.add(matcher.group(1)); //text with quotes
-            else tokens.add(matcher.group(2));
-        }
-
-        return tokens;
-    }
-
     @Override
     public BattleCommand chooseBattleCommand(Unit unit, Party allyParty, Party enemyParty) {
         while (true) {
@@ -38,43 +26,7 @@ public class ConsoleInputService implements InputService {
             if (input.isEmpty()) continue;
             List<String> tokens = parseInput(input);
 
-            switch (tokens.getFirst().toLowerCase()) {
-                case "attack":
-                    //ensure at least the attack and target name is present
-                    if (tokens.size() < 2) throw new IllegalArgumentException("Usage: attack [target name]");
-
-                    //get the target unit from the enemy party, and create the command
-                    Unit attackTarget = enemyParty.getUnitByName(tokens.get(1));
-                    return new AttackCommand(unit, attackTarget);
-
-                case "defend":
-                    return new DefendCommand(unit);
-
-                case "wait":
-                    return new WaitCommand(unit);
-
-                case "cast":
-                    //ensure at least the cast and ability keywords are present
-                    if (tokens.size() < 2) throw new IllegalArgumentException("Usage: cast \"[ability name]\" [target name if required]");
-
-                    //get the ability name and ensure the unit has it
-                    String abilityName = tokens.get(1);
-                    Ability ability = unit.getAbilityByName(abilityName);
-                    if (ability == null) throw new IllegalArgumentException("No such ability for this unit: " + abilityName);
-
-                    //get the target, if the ability requires it
-                    Unit castTarget = null;
-                    if (ability.requiresTarget()) {
-                        if (tokens.size() < 3) throw new IllegalArgumentException("Ability requires a target. Usage: cast \"" + abilityName + "\" [target name]");
-                        castTarget = enemyParty.getUnitByName(tokens.get(2));
-                    }
-
-                    //create the complete command
-                    return new CastCommand(unit, castTarget, allyParty, enemyParty, ability);
-
-                default:
-                    throw new IllegalArgumentException("Unknown action: " + tokens.getFirst());
-            }
+            return switchBattleCommand(unit, allyParty, enemyParty, tokens);
         }
     }
 
@@ -85,13 +37,11 @@ public class ConsoleInputService implements InputService {
             String input = this.scan.nextLine().trim();
             if (input.isEmpty()) continue;
 
-            return switch (input.toLowerCase()) {
-                case "next" -> new NextRoomCommand();
-                case "use item" -> new UseItemCommand();
-                case "view party" -> new ViewPartyCommand();
-                case "quit" -> new QuitCommand();
-                default -> throw new IllegalArgumentException("Unknown action: " + input);
-            };
+            try {
+                return PVECommandRegistry.getCommand(input);
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException("Unknown command: " + input + "\nValid: next | use item | view party | quit");
+            }
         }
     }
 

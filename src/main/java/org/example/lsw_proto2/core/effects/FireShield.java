@@ -9,7 +9,7 @@ public class FireShield extends Shield {
     private FireShield() { super(0); this.reflectPercent = 0; } //jackson
 
     public FireShield(int shieldAmount, double reflectPercent) {
-        super(-1); //infinite duration fire shield
+        super(shieldAmount);
         this.reflectPercent = reflectPercent;
     }
 

@@ -1,9 +1,6 @@
 package org.example.lsw_proto2.io;
 
-import org.example.lsw_proto2.battle.AttackCommand;
-import org.example.lsw_proto2.battle.BattleCommand;
-import org.example.lsw_proto2.battle.DefendCommand;
-import org.example.lsw_proto2.battle.WaitCommand;
+import org.example.lsw_proto2.battle.*;
 import org.example.lsw_proto2.core.*;
 import org.example.lsw_proto2.pve.PVECommand;
 
@@ -14,7 +11,7 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * Simple AI-based decision-making implementation of InputService for PVE enemies
  */
-public class AIInputService implements InputService {
+public class AIInputService implements BattleInputService {
     @Override
     public BattleCommand chooseBattleCommand(Unit unit, Party allyParty, Party enemyParty) {
         try {Thread.sleep(1000);} catch (InterruptedException e) {e.printStackTrace();}
@@ -31,30 +28,5 @@ public class AIInputService implements InputService {
                     .orElse(null);
             return new AttackCommand(unit, target);
         }
-    }
-
-    @Override
-    public PVECommand choosePVECommand() {
-        return null;
-    }
-
-    @Override
-    public String chooseInnAction() {
-        return "";
-    }
-
-    @Override
-    public Items chooseItem() {
-        return null;
-    }
-
-    @Override
-    public Unit chooseUnit(List<Unit> recruits) {
-        return null;
-    }
-
-    @Override
-    public HeroClass chooseHeroClass(List<HeroClass> heroClasses) {
-        return null;
     }
 }

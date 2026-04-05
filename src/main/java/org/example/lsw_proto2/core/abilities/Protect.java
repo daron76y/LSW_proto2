@@ -1,8 +1,7 @@
 package org.example.lsw_proto2.core.abilities;
 
+import org.example.lsw_proto2.core.BattleContext;
 import org.example.lsw_proto2.core.HeroClass;
-import org.example.lsw_proto2.core.OutputService;
-import org.example.lsw_proto2.core.Party;
 import org.example.lsw_proto2.core.Unit;
 import org.example.lsw_proto2.core.effects.Effect;
 import org.example.lsw_proto2.core.effects.FireShield;
@@ -25,16 +24,16 @@ public class Protect extends Ability {
     public boolean requiresTarget() {return false;}
 
     @Override
-    public void perform(Unit caster, Unit target, Party allyParty, Party enemyParty, OutputService output) {
-        for (Unit ally : allyParty.getAliveUnits()) {
+    public void perform(BattleContext bc) {
+        for (Unit ally : bc.getAllyParty().getAliveUnits()) {
             int shieldAmount = (int)(ally.getHealth() * 0.10) * effectMultiplier;
 
-            Effect shieldEffect = (caster.getMainClass() == HeroClass.HERETIC) ?
+            Effect shieldEffect = (bc.getCaster().getMainClass() == HeroClass.HERETIC) ?
                     new FireShield(shieldAmount, 0.10) :
                     new Shield(shieldAmount);
             ally.addEffect(shieldEffect);
 
-            output.showMessage(String.format("- %s gets %d %ss!", ally.getName(), shieldAmount, shieldEffect.getName()));
+            bc.getOutput().showMessage(String.format("- %s gets %d %ss!", ally.getName(), shieldAmount, shieldEffect.getName()));
         }
     }
 }
